@@ -1,6 +1,6 @@
 ---
 title: AutoML Studio
-emoji: A
+emoji: ⚡
 colorFrom: green
 colorTo: blue
 sdk: gradio
