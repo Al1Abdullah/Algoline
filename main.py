@@ -288,6 +288,80 @@ def explore_quality():
     return {"rows": rows, "columns": ["Feature","Missing","Missing%","Unique","Mean","Std","Skew","Outliers"]}
 
 
+@app.post("/api/explore/target")
+def explore_target():
+    """Target variable distribution — class balance (classification) or histogram (regression)."""
+    if "df" not in S: return JSONResponse({"error": "No data"}, 400)
+    df, tgt, task = S["df"], S["target"], S["task"]
+    y = df[tgt].dropna()
+    if task == "classification":
+        cts = y.astype(str).value_counts().reset_index()
+        cts.columns = [tgt, "Count"]
+        fig = px.bar(cts, x=tgt, y="Count", color=tgt, text="Count")
+        fig.update_traces(textposition="outside")
+        fig.update_layout(title=f"Target: {tgt} — Class Balance", title_font_size=14,
+                          showlegend=False)
+    else:
+        fig = px.histogram(y, x=tgt, nbins=40, marginal="box",
+                           color_discrete_sequence=["#6366f1"])
+        fig.update_layout(title=f"Target: {tgt} — Distribution", title_font_size=14)
+    return {"figure": fig_json(fig)}
+
+
+@app.post("/api/explore/missing")
+def explore_missing():
+    """Missing values bar chart — shows % missing per column."""
+    if "df" not in S: return JSONResponse({"error": "No data"}, 400)
+    df = S["df"]
+    miss = df.isna().sum()
+    miss = miss[miss > 0].sort_values(ascending=False)
+    if miss.empty:
+        return {"figure": None, "message": "No missing values found"}
+    pct = (miss / len(df) * 100).round(1)
+    mdf = pd.DataFrame({"Column": miss.index, "Missing": miss.values, "Percent": pct.values})
+    fig = px.bar(mdf, x="Column", y="Percent", text="Missing",
+                 color="Percent", color_continuous_scale=["#10b981", "#f59e0b", "#ef4444"])
+    fig.update_traces(textposition="outside")
+    fig.update_layout(title="Missing Values per Column", title_font_size=14,
+                      yaxis_title="Missing %", coloraxis_showscale=False)
+    return {"figure": fig_json(fig)}
+
+
+@app.post("/api/explore/feature_target")
+def explore_feature_target(feature: str = Form(...)):
+    """Feature vs Target — violin (classification) or scatter (regression)."""
+    if "df" not in S: return JSONResponse({"error": "No data"}, 400)
+    df, tgt, task = S["df"], S["target"], S["task"]
+    sub = df[[feature, tgt]].dropna()
+    if len(sub) > 2000: sub = sub.sample(2000, random_state=42)
+
+    if task == "classification":
+        sub[tgt] = sub[tgt].astype(str)
+        fig = px.violin(sub, x=tgt, y=feature, color=tgt, box=True, points="outliers")
+        fig.update_layout(title=f"{feature} by {tgt}", title_font_size=14, showlegend=False)
+    else:
+        fig = px.scatter(sub, x=feature, y=tgt, trendline="ols",
+                         color_discrete_sequence=["#8b5cf6"], opacity=0.6)
+        fig.update_layout(title=f"{feature} vs {tgt}", title_font_size=14)
+    return {"figure": fig_json(fig)}
+
+
+@app.post("/api/explore/outliers")
+def explore_outliers():
+    """All numeric features boxplot — outlier overview in one view."""
+    if "df" not in S: return JSONResponse({"error": "No data"}, 400)
+    df, tgt = S["df"], S["target"]
+    nc = df.select_dtypes(include=np.number).drop(columns=[tgt], errors="ignore").columns.tolist()
+    if not nc: return {"figure": None}
+    # Normalize for comparison (z-score)
+    normed = df[nc].apply(lambda x: (x - x.mean()) / x.std() if x.std() else x)
+    melted = normed.melt(var_name="Feature", value_name="Z-Score").dropna()
+    fig = px.box(melted, x="Feature", y="Z-Score", color="Feature")
+    fig.update_layout(title="Outlier Overview (Z-Score Normalized)", title_font_size=14,
+                      showlegend=False, xaxis_tickangle=-45)
+    return {"figure": fig_json(fig, 420)}
+
+
 # ── Build endpoints ──
 
 @app.post("/api/train")

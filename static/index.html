@@ -701,15 +701,30 @@ body { overflow-x: hidden; }
 
     <div class="card">
       <div class="tab-bar" id="explore-tab-bar">
-        <button class="tab-btn active" onclick="switchExploreTab('distribution')">Distribution</button>
+        <button class="tab-btn active" onclick="switchExploreTab('target')">Target</button>
+        <button class="tab-btn" onclick="switchExploreTab('missing')">Missing</button>
+        <button class="tab-btn" onclick="switchExploreTab('distribution')">Distribution</button>
         <button class="tab-btn" onclick="switchExploreTab('correlation')">Correlation</button>
+        <button class="tab-btn" onclick="switchExploreTab('feature_target')">Feature vs Target</button>
+        <button class="tab-btn" onclick="switchExploreTab('outliers')">Outliers</button>
         <button class="tab-btn" onclick="switchExploreTab('boxplot')">Boxplot</button>
         <button class="tab-btn" onclick="switchExploreTab('scatter')">Scatter Matrix</button>
         <button class="tab-btn" onclick="switchExploreTab('quality')">Quality</button>
       </div>
 
+      <!-- Target Distribution -->
+      <div id="explore-tab-target" class="tab-panel active">
+        <div class="chart-container" id="target-chart"></div>
+      </div>
+
+      <!-- Missing Values -->
+      <div id="explore-tab-missing" class="tab-panel">
+        <div class="chart-container" id="missing-chart"></div>
+        <div id="missing-msg" style="display:none;text-align:center;padding:32px 0;color:#71717a"></div>
+      </div>
+
       <!-- Distribution -->
-      <div id="explore-tab-distribution" class="tab-panel active">
+      <div id="explore-tab-distribution" class="tab-panel">
         <div class="flex-row mb-md">
           <div class="form-group" style="margin:0;min-width:200px">
             <label class="form-label">Feature</label>
@@ -724,6 +739,24 @@ body { overflow-x: hidden; }
       <!-- Correlation -->
       <div id="explore-tab-correlation" class="tab-panel">
         <div class="chart-container" id="corr-chart"></div>
+      </div>
+
+      <!-- Feature vs Target -->
+      <div id="explore-tab-feature_target" class="tab-panel">
+        <div class="flex-row mb-md">
+          <div class="form-group" style="margin:0;min-width:200px">
+            <label class="form-label">Feature</label>
+            <select class="form-select" id="ft-feature" onchange="loadFeatureTarget()">
+              <option value="">Select feature...</option>
+            </select>
+          </div>
+        </div>
+        <div class="chart-container" id="ft-chart"></div>
+      </div>
+
+      <!-- Outliers Overview -->
+      <div id="explore-tab-outliers" class="tab-panel">
+        <div class="chart-container" id="outliers-chart"></div>
       </div>
 
       <!-- Boxplot -->
@@ -1196,8 +1229,9 @@ function switchDataTab(tab) {
 function populateExploreDropdowns() {
   const cols = APP.columns;
   const numCols = APP.numericColumns.length ? APP.numericColumns : cols;
-  ['dist-feature', 'box-feature'].forEach(id => {
+  ['dist-feature', 'box-feature', 'ft-feature'].forEach(id => {
     const sel = document.getElementById(id);
+    if (!sel) return;
     sel.innerHTML = '<option value="">Select feature...</option>';
     cols.forEach(c => {
       sel.innerHTML += '<option value="' + escHtml(c) + '">' + escHtml(c) + '</option>';
@@ -1211,10 +1245,42 @@ function switchExploreTab(tab) {
   event.target.classList.add('active');
   document.getElementById('explore-tab-' + tab).classList.add('active');
 
-  // Auto-load correlation / scatter / quality
+  // Auto-load tabs that don't need user selection
+  if (tab === 'target') loadTarget();
+  if (tab === 'missing') loadMissing();
   if (tab === 'correlation') loadCorrelation();
+  if (tab === 'outliers') loadOutliers();
   if (tab === 'scatter') loadScatter();
   if (tab === 'quality') loadQuality();
+}
+
+async function loadTarget() {
+  try {
+    const data = await apiJson('/api/explore/target', { method: 'POST' });
+    if (data.figure) renderPlotly('target-chart', data.figure);
+    else document.getElementById('target-chart').innerHTML = '<p style="color:#71717a;padding:20px">No target data</p>';
+  } catch (err) {
+    document.getElementById('target-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
+  }
+}
+
+async function loadMissing() {
+  try {
+    const data = await apiJson('/api/explore/missing', { method: 'POST' });
+    const chart = document.getElementById('missing-chart');
+    const msg = document.getElementById('missing-msg');
+    if (data.figure) {
+      chart.style.display = '';
+      msg.style.display = 'none';
+      renderPlotly('missing-chart', data.figure);
+    } else {
+      chart.style.display = 'none';
+      msg.style.display = '';
+      msg.textContent = data.message || 'No missing values found in the dataset';
+    }
+  } catch (err) {
+    document.getElementById('missing-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
+  }
 }
 
 async function loadDistribution() {
@@ -1235,6 +1301,28 @@ async function loadCorrelation() {
     if (data.figure) renderPlotly('corr-chart', data.figure);
   } catch (err) {
     document.getElementById('corr-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
+  }
+}
+
+async function loadFeatureTarget() {
+  const feature = document.getElementById('ft-feature').value;
+  if (!feature) return;
+  try {
+    const fd = new FormData(); fd.append('feature', feature);
+    const data = await apiJson('/api/explore/feature_target', { method: 'POST', body: fd });
+    if (data.figure) renderPlotly('ft-chart', data.figure);
+  } catch (err) {
+    document.getElementById('ft-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
+  }
+}
+
+async function loadOutliers() {
+  try {
+    const data = await apiJson('/api/explore/outliers', { method: 'POST' });
+    if (data.figure) renderPlotly('outliers-chart', data.figure);
+    else document.getElementById('outliers-chart').innerHTML = '<p style="color:#71717a;padding:20px">No numeric features for outlier analysis</p>';
+  } catch (err) {
+    document.getElementById('outliers-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
   }
 }
 
