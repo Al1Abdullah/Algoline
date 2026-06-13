@@ -79,62 +79,183 @@ def get_exp(task):
     from pycaret.regression import RegressionExperiment
     return RegressionExperiment()
 
-def grab_img(fn):
-    """Read a PNG file and return base64 data URI, then delete it."""
-    if not fn or not os.path.exists(fn):
-        return None
-    with open(fn, "rb") as f:
-        b64 = base64.b64encode(f.read()).decode()
-    try: os.remove(fn)
-    except Exception: pass
-    return f"data:image/png;base64,{b64}"
-
-def grab_plot(exp, model, ptype):
-    """Generate a PyCaret plot and return as base64 data URI."""
-    plot_dir = tempfile.mkdtemp()
-    old_cwd = os.getcwd()
-    try:
-        os.chdir(plot_dir)
-        exp.plot_model(model, plot=ptype, save=True)
-        pngs = glob.glob(os.path.join(plot_dir, "*.png"))
-        if pngs:
-            return grab_img(max(pngs, key=os.path.getmtime))
-        return None
-    except Exception:
-        return None
-    finally:
-        os.chdir(old_cwd)
-
-def grab_shap(exp, model, ptype="summary"):
-    """Generate a SHAP plot and return as base64 data URI."""
-    plot_dir = tempfile.mkdtemp()
-    old_cwd = os.getcwd()
-    try:
-        os.chdir(plot_dir)
-        exp.interpret_model(model, plot=ptype, save=True)
-        pngs = glob.glob(os.path.join(plot_dir, "*.png"))
-        if pngs:
-            return grab_img(max(pngs, key=os.path.getmtime))
-        return None
-    except Exception:
-        return None
-    finally:
-        os.chdir(old_cwd)
-
 def gen_all_plots(exp, model, task):
+    """Generate REAL evaluation plots from actual model predictions using Plotly."""
     plots = []
-    pm = ([("confusion_matrix","Confusion Matrix"),("auc","ROC / AUC"),
-           ("pr","Precision-Recall"),("feature","Feature Importance"),
-           ("class_report","Classification Report")]
-          if task == "classification"
-          else [("residuals","Residuals"),("error","Predicted vs Actual"),
-                ("feature","Feature Importance")])
-    for pk, lb in pm:
-        img = grab_plot(exp, model, pk)
-        if img: plots.append({"label": lb, "image": img})
-    for stype, lb in [("summary","SHAP Summary"),("correlation","SHAP Dependence")]:
-        img = grab_shap(exp, model, stype)
-        if img: plots.append({"label": lb, "image": img})
+    try:
+        # Get actual predictions from the model on the test set
+        preds = exp.predict_model(model)
+    except Exception:
+        return plots
+
+    target_col = exp.get_config('target_param') if hasattr(exp, 'get_config') else None
+
+    if task == "classification":
+        # --- CONFUSION MATRIX (real data) ---
+        try:
+            from sklearn.metrics import confusion_matrix
+            y_true = preds[target_col] if target_col else preds.iloc[:, -2]
+            y_pred = preds['prediction_label'] if 'prediction_label' in preds.columns else preds['Label']
+            labels = sorted(y_true.unique())
+            cm = confusion_matrix(y_true, y_pred, labels=labels)
+            labels_str = [str(l) for l in labels]
+            # Annotate with counts
+            annotations = []
+            for i, row in enumerate(cm):
+                for j, val in enumerate(row):
+                    annotations.append(dict(
+                        x=labels_str[j], y=labels_str[i],
+                        text=str(val), showarrow=False,
+                        font=dict(color='white' if val > cm.max()/2 else '#a1a1aa', size=14)
+                    ))
+            fig = go.Figure(data=go.Heatmap(
+                z=cm, x=labels_str, y=labels_str,
+                colorscale=[[0,'#0f172a'],[0.5,'#065f46'],[1,'#10b981']],
+                showscale=True, hoverongaps=False
+            ))
+            fig.update_layout(
+                title='Confusion Matrix', xaxis_title='Predicted', yaxis_title='Actual',
+                yaxis=dict(autorange='reversed'), annotations=annotations,
+                height=420
+            )
+            plots.append({"label": "Confusion Matrix", "figure": fig_json(fig)})
+        except Exception:
+            pass
+
+        # --- ROC CURVE (real data) ---
+        try:
+            from sklearn.metrics import roc_curve, auc
+            y_true = preds[target_col] if target_col else preds.iloc[:, -2]
+            # Try to get prediction scores
+            score_cols = [c for c in preds.columns if c.startswith('prediction_score')]
+            if len(score_cols) >= 2 and y_true.nunique() == 2:
+                labels = sorted(y_true.unique())
+                y_binary = (y_true == labels[1]).astype(int)
+                scores = preds[score_cols[-1]]
+                fpr, tpr, _ = roc_curve(y_binary, scores)
+                roc_auc = auc(fpr, tpr)
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(x=fpr, y=tpr, mode='lines',
+                    name=f'ROC (AUC={roc_auc:.3f})', line=dict(color='#10b981', width=2)))
+                fig.add_trace(go.Scatter(x=[0,1], y=[0,1], mode='lines',
+                    name='Random', line=dict(color='#71717a', dash='dash', width=1)))
+                fig.update_layout(title=f'ROC Curve (AUC = {roc_auc:.3f})',
+                    xaxis_title='False Positive Rate', yaxis_title='True Positive Rate',
+                    height=420)
+                plots.append({"label": "ROC Curve", "figure": fig_json(fig)})
+        except Exception:
+            pass
+
+        # --- PRECISION-RECALL (real data) ---
+        try:
+            from sklearn.metrics import precision_recall_curve, average_precision_score
+            y_true = preds[target_col] if target_col else preds.iloc[:, -2]
+            score_cols = [c for c in preds.columns if c.startswith('prediction_score')]
+            if len(score_cols) >= 2 and y_true.nunique() == 2:
+                labels = sorted(y_true.unique())
+                y_binary = (y_true == labels[1]).astype(int)
+                scores = preds[score_cols[-1]]
+                prec, rec, _ = precision_recall_curve(y_binary, scores)
+                ap = average_precision_score(y_binary, scores)
+                fig = go.Figure()
+                fig.add_trace(go.Scatter(x=rec, y=prec, mode='lines',
+                    name=f'PR (AP={ap:.3f})', line=dict(color='#8b5cf6', width=2), fill='tozeroy',
+                    fillcolor='rgba(139,92,246,0.1)'))
+                fig.update_layout(title=f'Precision-Recall Curve (AP = {ap:.3f})',
+                    xaxis_title='Recall', yaxis_title='Precision', height=420)
+                plots.append({"label": "Precision-Recall", "figure": fig_json(fig)})
+        except Exception:
+            pass
+
+        # --- CLASS DISTRIBUTION OF PREDICTIONS ---
+        try:
+            y_pred = preds['prediction_label'] if 'prediction_label' in preds.columns else preds['Label']
+            counts = y_pred.value_counts()
+            fig = px.bar(x=counts.index.astype(str), y=counts.values,
+                         color=counts.index.astype(str),
+                         color_discrete_sequence=['#10b981','#8b5cf6','#f59e0b','#ef4444','#3b82f6'])
+            fig.update_layout(title='Prediction Distribution',
+                xaxis_title='Class', yaxis_title='Count',
+                showlegend=False, height=380)
+            plots.append({"label": "Prediction Distribution", "figure": fig_json(fig)})
+        except Exception:
+            pass
+
+    else:  # regression
+        # --- RESIDUALS PLOT ---
+        try:
+            y_true = preds[target_col] if target_col else preds.iloc[:, -2]
+            y_pred = preds['prediction_label'] if 'prediction_label' in preds.columns else preds['Label']
+            residuals = y_true - y_pred
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=y_pred, y=residuals, mode='markers',
+                marker=dict(color='#10b981', size=5, opacity=0.6), name='Residuals'))
+            fig.add_hline(y=0, line_dash="dash", line_color="#71717a")
+            fig.update_layout(title='Residuals Plot',
+                xaxis_title='Predicted', yaxis_title='Residual', height=420)
+            plots.append({"label": "Residuals", "figure": fig_json(fig)})
+        except Exception:
+            pass
+
+        # --- PREDICTED vs ACTUAL ---
+        try:
+            y_true = preds[target_col] if target_col else preds.iloc[:, -2]
+            y_pred = preds['prediction_label'] if 'prediction_label' in preds.columns else preds['Label']
+            fig = go.Figure()
+            fig.add_trace(go.Scatter(x=y_true, y=y_pred, mode='markers',
+                marker=dict(color='#8b5cf6', size=5, opacity=0.6), name='Predictions'))
+            mn, mx = min(y_true.min(), y_pred.min()), max(y_true.max(), y_pred.max())
+            fig.add_trace(go.Scatter(x=[mn,mx], y=[mn,mx], mode='lines',
+                name='Perfect', line=dict(color='#10b981', dash='dash', width=2)))
+            fig.update_layout(title='Predicted vs Actual',
+                xaxis_title='Actual', yaxis_title='Predicted', height=420)
+            plots.append({"label": "Predicted vs Actual", "figure": fig_json(fig)})
+        except Exception:
+            pass
+
+        # --- RESIDUAL DISTRIBUTION ---
+        try:
+            y_true = preds[target_col] if target_col else preds.iloc[:, -2]
+            y_pred = preds['prediction_label'] if 'prediction_label' in preds.columns else preds['Label']
+            residuals = y_true - y_pred
+            fig = go.Figure(data=go.Histogram(x=residuals, nbinsx=40,
+                marker_color='#10b981', opacity=0.75))
+            fig.update_layout(title='Residual Distribution',
+                xaxis_title='Residual', yaxis_title='Count', height=380)
+            plots.append({"label": "Residual Distribution", "figure": fig_json(fig)})
+        except Exception:
+            pass
+
+    # --- FEATURE IMPORTANCE (works for both tasks) ---
+    try:
+        if hasattr(model, 'feature_importances_'):
+            importances = model.feature_importances_
+            feature_names = exp.get_config('X_train').columns.tolist()
+            imp_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
+            imp_df = imp_df.sort_values('Importance', ascending=True).tail(15)
+            fig = go.Figure(go.Bar(x=imp_df['Importance'], y=imp_df['Feature'],
+                orientation='h', marker_color='#10b981'))
+            fig.update_layout(title='Feature Importance (Top 15)',
+                xaxis_title='Importance', height=max(350, len(imp_df)*28 + 80),
+                margin=dict(l=160))
+            plots.append({"label": "Feature Importance", "figure": fig_json(fig)})
+        elif hasattr(model, 'coef_'):
+            coefs = model.coef_.flatten() if model.coef_.ndim > 1 else model.coef_
+            feature_names = exp.get_config('X_train').columns.tolist()
+            if len(coefs) == len(feature_names):
+                imp_df = pd.DataFrame({'Feature': feature_names, 'Coefficient': coefs})
+                imp_df['AbsCoef'] = imp_df['Coefficient'].abs()
+                imp_df = imp_df.sort_values('AbsCoef', ascending=True).tail(15)
+                colors = ['#10b981' if v >= 0 else '#ef4444' for v in imp_df['Coefficient']]
+                fig = go.Figure(go.Bar(x=imp_df['Coefficient'], y=imp_df['Feature'],
+                    orientation='h', marker_color=colors))
+                fig.update_layout(title='Feature Coefficients (Top 15)',
+                    xaxis_title='Coefficient', height=max(350, len(imp_df)*28 + 80),
+                    margin=dict(l=160))
+                plots.append({"label": "Feature Coefficients", "figure": fig_json(fig)})
+    except Exception:
+        pass
+
     return plots
 
 def norm_lb(df):

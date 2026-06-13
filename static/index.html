@@ -1498,12 +1498,18 @@ function renderEvalPlots(plots) {
     container.innerHTML = '<p style="color:rgba(255,255,255,0.3);font-size:13px">No evaluation plots available</p>';
     return;
   }
-  container.innerHTML = plots.map(p => `
+  container.innerHTML = plots.map((p, i) => `
     <div class="plot-card">
       <div class="plot-card-title">${escHtml(p.label || 'Plot')}</div>
-      <img src="${p.image}" alt="${escHtml(p.label || 'Plot')}" loading="lazy">
+      <div id="eval-plot-${i}" style="width:100%;min-height:350px"></div>
     </div>
   `).join('');
+  // Render each Plotly figure
+  plots.forEach((p, i) => {
+    if (p.figure && p.figure.data) {
+      renderPlotly('eval-plot-' + i, p.figure);
+    }
+  });
 }
 
 /* ──────────────────────────────────────────────
