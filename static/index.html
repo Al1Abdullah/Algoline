@@ -839,143 +839,250 @@ body {
 /* ──────────────────────────────────────────────
    LIGHT THEME OVERRIDES
    ────────────────────────────────────────────── */
+
+/* ── Body & Background ── */
 [data-theme="light"] body {
   background:
-    radial-gradient(ellipse 70% 50% at 15% 5%, rgba(79,70,229,0.04) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 85% 15%, rgba(99,102,241,0.03) 0%, transparent 50%),
-    linear-gradient(180deg, #f5f6f8 0%, #eef0f4 50%, #e8eaef 100%);
+    radial-gradient(ellipse 70% 50% at 15% 5%, rgba(79,70,229,0.05) 0%, transparent 50%),
+    linear-gradient(180deg, #f0f2f6 0%, #e8eaf0 50%, #e2e4ea 100%);
 }
+
+/* ── Sidebar ── */
 [data-theme="light"] .sidebar {
-  background: linear-gradient(180deg, rgba(79,70,229,0.03) 0%, rgba(255,255,255,0.97) 30%);
-  border-right-color: rgba(0,0,0,0.06);
+  background: #ffffff;
+  border-right: 1px solid #e0e0e6;
 }
 [data-theme="light"] .sidebar::after {
-  background: linear-gradient(90deg, transparent, rgba(79,70,229,0.15), transparent);
+  background: linear-gradient(90deg, transparent, rgba(79,70,229,0.12), transparent);
 }
 [data-theme="light"] .sidebar-logo { color: #111827; }
 [data-theme="light"] .sidebar-logo::before {
-  background: radial-gradient(circle, rgba(79,70,229,0.1) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(79,70,229,0.08) 0%, transparent 70%);
 }
-[data-theme="light"] .nav-item { color: rgba(0,0,0,0.5); }
+[data-theme="light"] .nav-item { color: #6b7280; }
 [data-theme="light"] .nav-item:hover {
-  color: #111827; background: rgba(0,0,0,0.04);
+  color: #111827; background: #f3f4f6;
 }
 [data-theme="light"] .nav-item.active {
-  background: rgba(79,70,229,0.08); color: #4f46e5;
+  background: rgba(79,70,229,0.1); color: #4f46e5;
 }
 [data-theme="light"] .nav-item svg { color: inherit; }
+
+/* ── Section Headings ── */
 [data-theme="light"] .section-title {
   background: linear-gradient(135deg, #111827 0%, #4f46e5 100%);
   -webkit-background-clip: text; background-clip: text;
 }
-[data-theme="light"] .section-subtitle { color: rgba(0,0,0,0.45); }
+[data-theme="light"] .section-subtitle { color: #6b7280; }
+
+/* ── Cards (main glassmorphism fix) ── */
 [data-theme="light"] .card {
-  background: rgba(255,255,255,0.85);
-  border-color: rgba(0,0,0,0.08);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  backdrop-filter: none;
 }
 [data-theme="light"] .card:hover {
-  border-color: rgba(79,70,229,0.2);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(79,70,229,0.1);
+  border-color: #4f46e5;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1), 0 0 0 1px rgba(79,70,229,0.15);
 }
-[data-theme="light"] .card-label { color: rgba(0,0,0,0.4); }
+[data-theme="light"] .card-label { color: #6b7280; }
 [data-theme="light"] .card-value { color: #111827; }
+
+/* ── Metrics Grid Cards ── */
+[data-theme="light"] .metrics-grid .card {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+}
+
+/* ── Upload Area ── */
 [data-theme="light"] .upload-area {
-  border-color: rgba(0,0,0,0.12); background: rgba(255,255,255,0.5);
+  border: 2px dashed #c7c7d0;
+  background: #ffffff;
 }
 [data-theme="light"] .upload-area:hover,
 [data-theme="light"] .upload-area.dragover {
-  border-color: #4f46e5; background: rgba(79,70,229,0.04);
-  box-shadow: 0 0 30px rgba(79,70,229,0.1);
+  border-color: #4f46e5;
+  background: rgba(79,70,229,0.04);
+  box-shadow: 0 0 20px rgba(79,70,229,0.12);
 }
-[data-theme="light"] .upload-area svg { color: rgba(0,0,0,0.2); }
+[data-theme="light"] .upload-area svg { color: #9ca3af; }
 [data-theme="light"] .upload-area:hover svg,
 [data-theme="light"] .upload-area.dragover svg { color: #4f46e5; }
 [data-theme="light"] .upload-area-title { color: #111827; }
-[data-theme="light"] .upload-area-sub { color: rgba(0,0,0,0.4); }
+[data-theme="light"] .upload-area-sub { color: #6b7280; }
+
+/* ── Tab Bar ── */
 [data-theme="light"] .tab-bar {
-  background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.06);
+  background: #f3f4f6; border: 1px solid #d1d5db;
 }
-[data-theme="light"] .tab-btn { color: rgba(0,0,0,0.45); }
-[data-theme="light"] .tab-btn:hover { color: rgba(0,0,0,0.7); }
+[data-theme="light"] .tab-btn { color: #6b7280; }
+[data-theme="light"] .tab-btn:hover { color: #111827; background: rgba(0,0,0,0.04); }
 [data-theme="light"] .tab-btn.active {
-  background: rgba(79,70,229,0.08); color: #4f46e5;
+  background: #4f46e5; color: #ffffff;
 }
-[data-theme="light"] .data-table { border-color: rgba(0,0,0,0.06); }
+
+/* ── Data Tables ── */
+[data-theme="light"] .data-table {
+  border: 1px solid #d1d5db; border-radius: 8px; overflow: hidden;
+}
 [data-theme="light"] .data-table th {
-  background: rgba(0,0,0,0.03); color: rgba(0,0,0,0.55);
-  border-bottom-color: rgba(0,0,0,0.08);
+  background: #f3f4f6; color: #374151;
+  border-bottom: 2px solid #d1d5db;
 }
 [data-theme="light"] .data-table td {
-  color: #374151; border-bottom-color: rgba(0,0,0,0.05);
+  color: #374151; border-bottom: 1px solid #e5e7eb;
 }
-[data-theme="light"] .data-table tbody tr:hover { background: rgba(79,70,229,0.04); }
-[data-theme="light"] .data-table tbody tr:first-child { background: rgba(79,70,229,0.06); }
+[data-theme="light"] .data-table tbody tr:hover { background: #f3f4f6; }
+[data-theme="light"] .data-table tbody tr:first-child { background: rgba(79,70,229,0.05); }
 [data-theme="light"] .data-table tbody tr:first-child td:first-child { border-left-color: #4f46e5; }
+
+/* ── Form Inputs & Selects ── */
 [data-theme="light"] .form-select,
 [data-theme="light"] .form-input {
-  background: #fff; border-color: rgba(0,0,0,0.12); color: #111827;
+  background: #ffffff; border: 1px solid #d1d5db; color: #111827;
 }
 [data-theme="light"] .form-select:focus,
 [data-theme="light"] .form-input:focus {
-  border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+  border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.15);
 }
-[data-theme="light"] .form-select option { background: #fff; color: #111827; }
-[data-theme="light"] .form-label { color: rgba(0,0,0,0.6); }
+[data-theme="light"] .form-select option { background: #ffffff; color: #111827; }
+[data-theme="light"] .form-select optgroup {
+  background: #f3f4f6; color: #6b7280;
+}
+[data-theme="light"] .form-select optgroup option {
+  background: #ffffff; color: #374151;
+}
+[data-theme="light"] .form-label { color: #374151; font-weight: 600; }
+
+/* ── Checkbox Items (text was invisible) ── */
+[data-theme="light"] .checkbox-item {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  color: #374151;
+}
+[data-theme="light"] .checkbox-item:hover {
+  border-color: #4f46e5;
+  color: #111827;
+  background: #f8f8ff;
+}
+[data-theme="light"] .checkbox-item input[type="checkbox"] {
+  border-color: #9ca3af;
+  background: #ffffff;
+}
+[data-theme="light"] .checkbox-item input[type="checkbox"]:checked {
+  background: #4f46e5; border-color: #4f46e5;
+}
+
+/* ── Range Sliders (track was invisible) ── */
+[data-theme="light"] .range-wrap input[type="range"] {
+  background: #d1d5db;
+}
+[data-theme="light"] .range-wrap input[type="range"]::-webkit-slider-thumb {
+  background: #4f46e5; border-color: #ffffff;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+}
+[data-theme="light"] .range-wrap input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 4px rgba(79,70,229,0.2);
+}
+[data-theme="light"] .range-val { color: #111827; }
+
+/* ── Buttons ── */
 [data-theme="light"] .btn { color: #374151; }
 [data-theme="light"] .btn-primary {
   background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: #fff;
+  box-shadow: 0 2px 8px rgba(79,70,229,0.25);
+}
+[data-theme="light"] .btn-primary:hover {
+  box-shadow: 0 4px 14px rgba(79,70,229,0.35);
 }
 [data-theme="light"] .btn-secondary {
-  border-color: rgba(0,0,0,0.12); color: rgba(0,0,0,0.6);
+  border: 1px solid #d1d5db; color: #374151; background: #ffffff;
 }
 [data-theme="light"] .btn-secondary:hover {
-  border-color: #4f46e5; color: #4f46e5;
+  border-color: #4f46e5; color: #4f46e5; background: #f8f8ff;
 }
-[data-theme="light"] .task-badge { background: rgba(79,70,229,0.08); color: #4f46e5; }
-[data-theme="light"] .checkbox-label { color: #374151; }
-[data-theme="light"] .checkbox-label::before {
-  border-color: rgba(0,0,0,0.15); background: #fff;
+
+/* ── Task Badge ── */
+[data-theme="light"] .task-badge {
+  background: rgba(79,70,229,0.1); color: #4f46e5;
+  border: 1px solid rgba(79,70,229,0.2);
 }
-[data-theme="light"] .range-container label { color: rgba(0,0,0,0.5); }
-[data-theme="light"] .range-value { background: rgba(79,70,229,0.08); color: #4f46e5; }
-[data-theme="light"] .loading-overlay { background: rgba(245,246,248,0.88); }
+
+/* ── Loading ── */
+[data-theme="light"] .loading-overlay { background: rgba(240,242,246,0.92); }
 [data-theme="light"] .spinner {
-  border-color: rgba(0,0,0,0.08); border-top-color: #4f46e5;
+  border-color: #d1d5db; border-top-color: #4f46e5;
   border-right-color: rgba(79,70,229,0.3);
 }
-[data-theme="light"] .loading-text { color: rgba(0,0,0,0.5); }
+[data-theme="light"] .loading-text { color: #6b7280; }
+
+/* ── Plot Cards (evaluation charts) ── */
 [data-theme="light"] .plot-card {
-  background: rgba(255,255,255,0.7); border-color: rgba(0,0,0,0.06);
+  background: #ffffff; border: 1px solid #d1d5db;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 [data-theme="light"] .plot-card:hover {
-  border-color: rgba(0,0,0,0.1); box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+  border-color: #4f46e5; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
-[data-theme="light"] .plot-card-title { color: rgba(0,0,0,0.5); }
+[data-theme="light"] .plot-card-title { color: #6b7280; }
+
+/* ── Insight Cards ── */
 [data-theme="light"] .insight-card {
-  background: rgba(255,255,255,0.6); border-color: rgba(0,0,0,0.06);
+  background: #ffffff; border: 1px solid #e5e7eb;
 }
 [data-theme="light"] .insight-title { color: #111827; }
-[data-theme="light"] .insight-detail { color: rgba(0,0,0,0.55); }
+[data-theme="light"] .insight-detail { color: #6b7280; }
+
+/* ── Training Summary Banner ── */
 [data-theme="light"] .summary-banner {
-  background: linear-gradient(135deg, rgba(79,70,229,0.06) 0%, rgba(255,255,255,0.9) 100%);
-  border-color: rgba(79,70,229,0.12);
+  background: linear-gradient(135deg, rgba(79,70,229,0.06) 0%, #ffffff 100%);
+  border: 1px solid #d1d5db;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
-[data-theme="light"] .summary-text { color: rgba(0,0,0,0.55); }
-[data-theme="light"] .summary-stat-label { color: rgba(0,0,0,0.4); }
+[data-theme="light"] .summary-text { color: #6b7280; }
+[data-theme="light"] .summary-stat-label { color: #6b7280; }
 [data-theme="light"] .summary-stat-value { color: #111827; }
 [data-theme="light"] .feature-pill {
-  background: rgba(79,70,229,0.08); color: #4f46e5; border-color: rgba(79,70,229,0.15);
+  background: rgba(79,70,229,0.08); color: #4f46e5;
+  border: 1px solid rgba(79,70,229,0.2);
 }
-[data-theme="light"] .summary-grid .card { box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+
+/* ── Summary Grid (Export page) ── */
+[data-theme="light"] .summary-grid .card {
+  background: #ffffff;
+  border: 1px solid #d1d5db;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
 [data-theme="light"] .summary-value { color: #111827; }
-[data-theme="light"] .summary-label { color: rgba(0,0,0,0.45); }
+[data-theme="light"] .summary-label { color: #6b7280; }
+
+/* ── Best Model Card ── */
 [data-theme="light"] #best-model-card {
+  border-left: 3px solid #4f46e5 !important;
+  background: linear-gradient(135deg, rgba(79,70,229,0.06) 0%, #ffffff 100%) !important;
+  border-color: #d1d5db !important;
   border-left-color: #4f46e5 !important;
-  background: linear-gradient(135deg, rgba(79,70,229,0.06) 0%, rgba(255,255,255,0.9) 100%) !important;
 }
-[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); }
-[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.18); }
+
+/* ── Collapsible Sections ── */
+[data-theme="light"] details summary {
+  color: #374151;
+}
+[data-theme="light"] details {
+  border-color: #d1d5db;
+}
+
+/* ── Scrollbar ── */
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.12); }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.22); }
+
+/* ── Misc text that might be white ── */
+[data-theme="light"] .flex-row { color: #374151; }
+[data-theme="light"] span[style*="color:#fff"],
+[data-theme="light"] span[style*="color: #fff"],
+[data-theme="light"] div[style*="color:#fff"],
+[data-theme="light"] div[style*="color: #fff"] { color: #111827 !important; }
 
 
 /* ──────────────────────────────────────────────
@@ -1921,7 +2028,10 @@ function renderMetricChart() {
   const models = lb.rows.map(r => r[modelCol] || '');
   const values = lb.rows.map(r => parseFloat(r[metric]) || 0);
 
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
   const colors = values.map((_, i) => i === 0 ? '#6366f1' : i === 1 ? '#818cf8' : i === 2 ? '#a78bfa' : 'rgba(99,102,241,0.35)');
+  const barOutline = isLight ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.12)';
+  const valTextColor = isLight ? '#374151' : '#a1a1aa';
 
   const figure = {
     data: [{
@@ -1929,10 +2039,10 @@ function renderMetricChart() {
       x: values,
       y: models,
       orientation: 'h',
-      marker: { color: colors, line: { width: 1, color: 'rgba(255,255,255,0.12)' } },
+      marker: { color: colors, line: { width: 1, color: barOutline } },
       text: values.map(v => v.toFixed(4)),
       textposition: 'outside',
-      textfont: { family: 'Inter', size: 11, color: '#a1a1aa' }
+      textfont: { family: 'Inter', size: 11, color: valTextColor }
     }],
     layout: {
       yaxis: { autorange: 'reversed', tickfont: { size: 11 } },
@@ -1947,7 +2057,7 @@ function renderMetricChart() {
 function renderEvalPlots(plots) {
   const container = document.getElementById('eval-plots');
   if (!plots || !plots.length) {
-    container.innerHTML = '<p style="color:rgba(255,255,255,0.3);font-size:13px">No evaluation plots available</p>';
+    container.innerHTML = '<p style="color:var(--text-muted);font-size:13px">No evaluation plots available</p>';
     return;
   }
   container.innerHTML = plots.map((p, i) => `
