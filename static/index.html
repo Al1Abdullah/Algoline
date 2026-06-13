@@ -1256,14 +1256,25 @@ function onPlotTypeChange() {
   document.getElementById('feat1-group').style.display = conf.feat1 ? '' : 'none';
   document.getElementById('feat2-group').style.display = conf.feat2 ? '' : 'none';
 
+  // Reset chart visibility state
+  const chart = document.getElementById('explore-chart');
+  const msg = document.getElementById('explore-msg');
+  chart.style.display = '';
+
   // Auto-generate if no feature selection needed
   if (!conf.feat1 && !conf.feat2) {
     generatePlot();
   } else {
-    // Clear chart and show hint
-    document.getElementById('explore-chart').innerHTML = '';
-    document.getElementById('explore-msg').style.display = '';
-    document.getElementById('explore-msg').textContent = 'Select a feature to generate the plot';
+    // Check if a feature is already selected — auto-generate
+    const f1 = document.getElementById('plot-feat1').value;
+    const f2 = document.getElementById('plot-feat2').value;
+    if (conf.feat1 && f1 && (!conf.feat2 || f2)) {
+      generatePlot();
+    } else {
+      chart.innerHTML = '';
+      msg.style.display = '';
+      msg.textContent = 'Select a feature to generate the plot';
+    }
   }
 }
 
@@ -1282,9 +1293,10 @@ async function generatePlot() {
   const chart = document.getElementById('explore-chart');
   const msg = document.getElementById('explore-msg');
 
-  // Show loading
-  chart.innerHTML = '<div style="display:flex;justify-content:center;padding:60px 0"><div class="spinner"></div></div>';
+  // Always reset visibility before loading
+  chart.style.display = '';
   msg.style.display = 'none';
+  chart.innerHTML = '<div style="display:flex;justify-content:center;padding:60px 0"><div class="spinner"></div></div>';
 
   try {
     const fd = new FormData();
@@ -1298,11 +1310,13 @@ async function generatePlot() {
       msg.style.display = 'none';
       renderPlotly('explore-chart', data.figure);
     } else {
+      chart.innerHTML = '';
       chart.style.display = 'none';
       msg.style.display = '';
       msg.textContent = data.message || 'No data available for this plot';
     }
   } catch (err) {
+    chart.style.display = '';
     chart.innerHTML = '<p style="color:#ef4444;padding:20px;text-align:center">' + escHtml(err.message) + '</p>';
     msg.style.display = 'none';
   }
