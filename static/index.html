@@ -10,6 +10,78 @@
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
 <style>
 /* ──────────────────────────────────────────────
+   THEME VARIABLES
+   ────────────────────────────────────────────── */
+:root {
+  --bg-primary: #0b0d13;
+  --bg-secondary: #0a0c11;
+  --bg-tertiary: #080a0f;
+  --surface: rgba(255,255,255,0.035);
+  --surface-hover: rgba(255,255,255,0.06);
+  --surface-alt: rgba(255,255,255,0.025);
+  --border: rgba(255,255,255,0.07);
+  --border-light: rgba(255,255,255,0.04);
+  --text-primary: #ffffff;
+  --text-secondary: #e4e4e7;
+  --text-tertiary: rgba(255,255,255,0.5);
+  --text-muted: rgba(255,255,255,0.35);
+  --text-faint: rgba(255,255,255,0.2);
+  --accent: #6366f1;
+  --accent-hover: #818cf8;
+  --accent-deep: #4f46e5;
+  --accent-surface: rgba(99,102,241,0.1);
+  --accent-border: rgba(99,102,241,0.15);
+  --accent-glow: rgba(99,102,241,0.25);
+  --shadow: rgba(0,0,0,0.2);
+  --shadow-heavy: rgba(0,0,0,0.3);
+  --input-bg: #16181f;
+  --sidebar-bg: rgba(11,13,19,0.97);
+  --sidebar-top: rgba(30,27,75,0.12);
+  --scrollbar-thumb: rgba(255,255,255,0.08);
+  --danger: #ef4444;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --chart-grid: rgba(30,27,75,0.15);
+  --chart-text: #71717a;
+  --plot-bg: rgba(0,0,0,0);
+  --upload-hover-shadow: rgba(99,102,241,0.08);
+}
+
+[data-theme="light"] {
+  --bg-primary: #f5f6f8;
+  --bg-secondary: #eef0f4;
+  --bg-tertiary: #e8eaef;
+  --surface: rgba(255,255,255,0.85);
+  --surface-hover: rgba(255,255,255,0.95);
+  --surface-alt: rgba(255,255,255,0.6);
+  --border: rgba(0,0,0,0.08);
+  --border-light: rgba(0,0,0,0.05);
+  --text-primary: #111827;
+  --text-secondary: #374151;
+  --text-tertiary: rgba(0,0,0,0.5);
+  --text-muted: rgba(0,0,0,0.35);
+  --text-faint: rgba(0,0,0,0.15);
+  --accent: #4f46e5;
+  --accent-hover: #6366f1;
+  --accent-deep: #4338ca;
+  --accent-surface: rgba(79,70,229,0.08);
+  --accent-border: rgba(79,70,229,0.2);
+  --accent-glow: rgba(79,70,229,0.15);
+  --shadow: rgba(0,0,0,0.06);
+  --shadow-heavy: rgba(0,0,0,0.1);
+  --input-bg: #ffffff;
+  --sidebar-bg: rgba(255,255,255,0.95);
+  --sidebar-top: rgba(79,70,229,0.05);
+  --scrollbar-thumb: rgba(0,0,0,0.1);
+  --danger: #dc2626;
+  --success: #16a34a;
+  --warning: #d97706;
+  --chart-grid: rgba(0,0,0,0.06);
+  --chart-text: #6b7280;
+  --plot-bg: rgba(0,0,0,0);
+  --upload-hover-shadow: rgba(79,70,229,0.1);
+}
+/* ──────────────────────────────────────────────
    RESET & BASE
    ────────────────────────────────────────────── */
 *, *::before, *::after {
@@ -18,20 +90,22 @@
 html {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   font-size: 14px;
-  color: #e4e4e7;
-  background: #0b0d13;
+  color: var(--text-secondary);
+  background: var(--bg-primary);
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background 0.3s ease, color 0.3s ease;
 }
 body {
   overflow-x: hidden;
   background:
-    radial-gradient(ellipse 70% 50% at 15% 5%, rgba(79,70,229,0.12) 0%, transparent 50%),
-    radial-gradient(ellipse 60% 40% at 85% 15%, rgba(99,102,241,0.06) 0%, transparent 50%),
-    radial-gradient(ellipse 50% 50% at 50% 90%, rgba(30,27,75,0.08) 0%, transparent 50%),
-    linear-gradient(180deg, #0b0d13 0%, #0a0c11 50%, #080a0f 100%);
+    radial-gradient(ellipse 70% 50% at 15% 5%, var(--accent-glow) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 85% 15%, var(--accent-surface) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 50% at 50% 90%, var(--sidebar-top) 0%, transparent 50%),
+    linear-gradient(180deg, var(--bg-primary) 0%, var(--bg-secondary) 50%, var(--bg-tertiary) 100%);
   min-height: 100vh;
+  transition: background 0.3s ease;
 }
 
 /* ──────────────────────────────────────────────
@@ -737,6 +811,174 @@ body {
 }
 
 /* ──────────────────────────────────────────────
+   THEME TOGGLE BUTTON
+   ────────────────────────────────────────────── */
+.theme-toggle {
+  position: fixed; top: 16px; right: 20px;
+  z-index: 200;
+  width: 38px; height: 38px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  color: var(--text-tertiary);
+}
+.theme-toggle:hover {
+  border-color: var(--accent-border);
+  color: var(--accent);
+  box-shadow: 0 2px 12px var(--shadow);
+  transform: translateY(-1px);
+}
+.theme-toggle svg { width: 18px; height: 18px; transition: transform 0.3s ease; }
+.theme-toggle:hover svg { transform: rotate(15deg); }
+
+/* ──────────────────────────────────────────────
+   LIGHT THEME OVERRIDES
+   ────────────────────────────────────────────── */
+[data-theme="light"] body {
+  background:
+    radial-gradient(ellipse 70% 50% at 15% 5%, rgba(79,70,229,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse 60% 40% at 85% 15%, rgba(99,102,241,0.03) 0%, transparent 50%),
+    linear-gradient(180deg, #f5f6f8 0%, #eef0f4 50%, #e8eaef 100%);
+}
+[data-theme="light"] .sidebar {
+  background: linear-gradient(180deg, rgba(79,70,229,0.03) 0%, rgba(255,255,255,0.97) 30%);
+  border-right-color: rgba(0,0,0,0.06);
+}
+[data-theme="light"] .sidebar::after {
+  background: linear-gradient(90deg, transparent, rgba(79,70,229,0.15), transparent);
+}
+[data-theme="light"] .sidebar-logo { color: #111827; }
+[data-theme="light"] .sidebar-logo::before {
+  background: radial-gradient(circle, rgba(79,70,229,0.1) 0%, transparent 70%);
+}
+[data-theme="light"] .nav-item { color: rgba(0,0,0,0.5); }
+[data-theme="light"] .nav-item:hover {
+  color: #111827; background: rgba(0,0,0,0.04);
+}
+[data-theme="light"] .nav-item.active {
+  background: rgba(79,70,229,0.08); color: #4f46e5;
+}
+[data-theme="light"] .nav-item svg { color: inherit; }
+[data-theme="light"] .section-title {
+  background: linear-gradient(135deg, #111827 0%, #4f46e5 100%);
+  -webkit-background-clip: text; background-clip: text;
+}
+[data-theme="light"] .section-subtitle { color: rgba(0,0,0,0.45); }
+[data-theme="light"] .card {
+  background: rgba(255,255,255,0.85);
+  border-color: rgba(0,0,0,0.08);
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+}
+[data-theme="light"] .card:hover {
+  border-color: rgba(79,70,229,0.2);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08), 0 0 0 1px rgba(79,70,229,0.1);
+}
+[data-theme="light"] .card-label { color: rgba(0,0,0,0.4); }
+[data-theme="light"] .card-value { color: #111827; }
+[data-theme="light"] .upload-area {
+  border-color: rgba(0,0,0,0.12); background: rgba(255,255,255,0.5);
+}
+[data-theme="light"] .upload-area:hover,
+[data-theme="light"] .upload-area.dragover {
+  border-color: #4f46e5; background: rgba(79,70,229,0.04);
+  box-shadow: 0 0 30px rgba(79,70,229,0.1);
+}
+[data-theme="light"] .upload-area svg { color: rgba(0,0,0,0.2); }
+[data-theme="light"] .upload-area:hover svg,
+[data-theme="light"] .upload-area.dragover svg { color: #4f46e5; }
+[data-theme="light"] .upload-area-title { color: #111827; }
+[data-theme="light"] .upload-area-sub { color: rgba(0,0,0,0.4); }
+[data-theme="light"] .tab-bar {
+  background: rgba(0,0,0,0.03); border-color: rgba(0,0,0,0.06);
+}
+[data-theme="light"] .tab-btn { color: rgba(0,0,0,0.45); }
+[data-theme="light"] .tab-btn:hover { color: rgba(0,0,0,0.7); }
+[data-theme="light"] .tab-btn.active {
+  background: rgba(79,70,229,0.08); color: #4f46e5;
+}
+[data-theme="light"] .data-table { border-color: rgba(0,0,0,0.06); }
+[data-theme="light"] .data-table th {
+  background: rgba(0,0,0,0.03); color: rgba(0,0,0,0.55);
+  border-bottom-color: rgba(0,0,0,0.08);
+}
+[data-theme="light"] .data-table td {
+  color: #374151; border-bottom-color: rgba(0,0,0,0.05);
+}
+[data-theme="light"] .data-table tbody tr:hover { background: rgba(79,70,229,0.04); }
+[data-theme="light"] .data-table tbody tr:first-child { background: rgba(79,70,229,0.06); }
+[data-theme="light"] .data-table tbody tr:first-child td:first-child { border-left-color: #4f46e5; }
+[data-theme="light"] .form-select,
+[data-theme="light"] .form-input {
+  background: #fff; border-color: rgba(0,0,0,0.12); color: #111827;
+}
+[data-theme="light"] .form-select:focus,
+[data-theme="light"] .form-input:focus {
+  border-color: #4f46e5; box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+}
+[data-theme="light"] .form-select option { background: #fff; color: #111827; }
+[data-theme="light"] .form-label { color: rgba(0,0,0,0.6); }
+[data-theme="light"] .btn { color: #374151; }
+[data-theme="light"] .btn-primary {
+  background: linear-gradient(135deg, #4f46e5 0%, #4338ca 100%); color: #fff;
+}
+[data-theme="light"] .btn-secondary {
+  border-color: rgba(0,0,0,0.12); color: rgba(0,0,0,0.6);
+}
+[data-theme="light"] .btn-secondary:hover {
+  border-color: #4f46e5; color: #4f46e5;
+}
+[data-theme="light"] .task-badge { background: rgba(79,70,229,0.08); color: #4f46e5; }
+[data-theme="light"] .checkbox-label { color: #374151; }
+[data-theme="light"] .checkbox-label::before {
+  border-color: rgba(0,0,0,0.15); background: #fff;
+}
+[data-theme="light"] .range-container label { color: rgba(0,0,0,0.5); }
+[data-theme="light"] .range-value { background: rgba(79,70,229,0.08); color: #4f46e5; }
+[data-theme="light"] .loading-overlay { background: rgba(245,246,248,0.88); }
+[data-theme="light"] .spinner {
+  border-color: rgba(0,0,0,0.08); border-top-color: #4f46e5;
+  border-right-color: rgba(79,70,229,0.3);
+}
+[data-theme="light"] .loading-text { color: rgba(0,0,0,0.5); }
+[data-theme="light"] .plot-card {
+  background: rgba(255,255,255,0.7); border-color: rgba(0,0,0,0.06);
+}
+[data-theme="light"] .plot-card:hover {
+  border-color: rgba(0,0,0,0.1); box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+}
+[data-theme="light"] .plot-card-title { color: rgba(0,0,0,0.5); }
+[data-theme="light"] .insight-card {
+  background: rgba(255,255,255,0.6); border-color: rgba(0,0,0,0.06);
+}
+[data-theme="light"] .insight-title { color: #111827; }
+[data-theme="light"] .insight-detail { color: rgba(0,0,0,0.55); }
+[data-theme="light"] .summary-banner {
+  background: linear-gradient(135deg, rgba(79,70,229,0.06) 0%, rgba(255,255,255,0.9) 100%);
+  border-color: rgba(79,70,229,0.12);
+}
+[data-theme="light"] .summary-text { color: rgba(0,0,0,0.55); }
+[data-theme="light"] .summary-stat-label { color: rgba(0,0,0,0.4); }
+[data-theme="light"] .summary-stat-value { color: #111827; }
+[data-theme="light"] .feature-pill {
+  background: rgba(79,70,229,0.08); color: #4f46e5; border-color: rgba(79,70,229,0.15);
+}
+[data-theme="light"] .summary-grid .card { box-shadow: 0 1px 3px rgba(0,0,0,0.06); }
+[data-theme="light"] .summary-value { color: #111827; }
+[data-theme="light"] .summary-label { color: rgba(0,0,0,0.45); }
+[data-theme="light"] #best-model-card {
+  border-left-color: #4f46e5 !important;
+  background: linear-gradient(135deg, rgba(79,70,229,0.06) 0%, rgba(255,255,255,0.9) 100%) !important;
+}
+[data-theme="light"] ::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); }
+[data-theme="light"] ::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.18); }
+
+
+/* ──────────────────────────────────────────────
    RESPONSIVE
    ────────────────────────────────────────────── */
 @media (max-width: 900px) {
@@ -753,6 +995,12 @@ body {
 </style>
 </head>
 <body>
+
+<!-- Theme Toggle -->
+<button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme">
+  <svg id="icon-moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+  <svg id="icon-sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+</button>
 
 <!-- ════════════════════════════════════════════
      SIDEBAR
@@ -1181,14 +1429,17 @@ function renderPlotly(divId, figure) {
   // Always clear any existing content (spinner, old chart) first
   el.innerHTML = '';
   if (!figure || !figure.data) return;
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  const textColor = isLight ? '#6b7280' : '#71717a';
+  const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(30,27,75,0.15)';
   const layout = Object.assign({}, figure.layout || {}, {
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)',
-    font: { family: 'Inter, sans-serif', size: 12, color: '#71717a' },
+    font: { family: 'Inter, sans-serif', size: 12, color: textColor },
     margin: figure.layout && figure.layout.margin ? figure.layout.margin : { l: 40, r: 20, t: 40, b: 40 }
   });
-  layout.xaxis = Object.assign({}, layout.xaxis || {}, { gridcolor: 'rgba(30,27,75,0.15)', zeroline: false });
-  layout.yaxis = Object.assign({}, layout.yaxis || {}, { gridcolor: 'rgba(30,27,75,0.15)', zeroline: false });
+  layout.xaxis = Object.assign({}, layout.xaxis || {}, { gridcolor: gridColor, zeroline: false });
+  layout.yaxis = Object.assign({}, layout.yaxis || {}, { gridcolor: gridColor, zeroline: false });
   try {
     Plotly.newPlot(divId, figure.data, layout, { responsive: true, displayModeBar: false });
   } catch (e) {
@@ -1833,6 +2084,54 @@ function renderTrainingSummary(summary) {
   `;
   container.style.display = '';
 }
+
+/* ──────────────────────────────────────────────
+   THEME TOGGLE
+   ────────────────────────────────────────────── */
+function toggleTheme() {
+  const html = document.documentElement;
+  const isLight = html.getAttribute('data-theme') === 'light';
+  const newTheme = isLight ? 'dark' : 'light';
+  html.setAttribute('data-theme', newTheme);
+  localStorage.setItem('automl-theme', newTheme);
+  updateThemeIcon(newTheme);
+  reThemePlotly(newTheme);
+}
+
+function updateThemeIcon(theme) {
+  const moon = document.getElementById('icon-moon');
+  const sun = document.getElementById('icon-sun');
+  if (theme === 'light') {
+    moon.style.display = 'none';
+    sun.style.display = '';
+  } else {
+    moon.style.display = '';
+    sun.style.display = 'none';
+  }
+}
+
+function reThemePlotly(theme) {
+  const textColor = theme === 'light' ? '#6b7280' : '#71717a';
+  const gridColor = theme === 'light' ? 'rgba(0,0,0,0.06)' : 'rgba(30,27,75,0.15)';
+  document.querySelectorAll('.js-plotly-plot').forEach(el => {
+    try {
+      Plotly.relayout(el, {
+        'font.color': textColor,
+        'xaxis.gridcolor': gridColor,
+        'yaxis.gridcolor': gridColor,
+      });
+    } catch (_) {}
+  });
+}
+
+// Restore saved theme
+(function() {
+  const saved = localStorage.getItem('automl-theme');
+  if (saved === 'light') {
+    document.documentElement.setAttribute('data-theme', 'light');
+    updateThemeIcon('light');
+  }
+})();
 
 /* ──────────────────────────────────────────────
    INIT
