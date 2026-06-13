@@ -676,10 +676,33 @@ def train_models(
     if nuniq < 2:
         return JSONResponse({"error": f"Target '{tgt}' has only {nuniq} unique value(s)."}, 400)
 
-    # Setup
+    # Setup — always start completely fresh
     try:
+        # Clear any previous experiment state
+        if "experiment" in S:
+            del S["experiment"]
+        S.pop("compare_df", None)
+        S.pop("best_model", None)
+        S.pop("active_model", None)
+        S.pop("tuned_model", None)
+        S.pop("tune_df", None)
+        S.pop("plots", None)
+
+        # Reset PyCaret internal globals
+        try:
+            if task == "classification":
+                import pycaret.classification as _pcm
+            else:
+                import pycaret.regression as _pcm
+            if hasattr(_pcm, '_current_experiment'):
+                _pcm._current_experiment = None
+        except Exception:
+            pass
+
         exp = get_exp(task)
-        kw = dict(data=work, target=tgt, session_id=42,
+        # Fresh copy with clean index to avoid stale feature names
+        train_df = work.reset_index(drop=True).copy()
+        kw = dict(data=train_df, target=tgt, session_id=42,
                   train_size=1-test_size, fold=cv_folds,
                   normalize=normalize, transformation=transform_skew,
                   remove_multicollinearity=drop_multicollinear,
