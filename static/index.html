@@ -666,6 +666,77 @@ body {
 }
 
 /* ──────────────────────────────────────────────
+   INSIGHT CARDS
+   ────────────────────────────────────────────── */
+.insights-grid {
+  display: flex; flex-direction: column; gap: 8px;
+  margin-bottom: 20px;
+}
+.insight-card {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.025);
+  border-left: 3px solid rgba(255,255,255,0.15);
+  animation: fadeIn 0.3s ease both;
+}
+.insight-card.success { border-left-color: #22c55e; }
+.insight-card.warning { border-left-color: #f59e0b; }
+.insight-card.info { border-left-color: #6366f1; }
+.insight-icon {
+  width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px;
+}
+.insight-card.success .insight-icon { color: #22c55e; }
+.insight-card.warning .insight-icon { color: #f59e0b; }
+.insight-card.info .insight-icon { color: #6366f1; }
+.insight-title {
+  font-size: 12.5px; font-weight: 600; color: #fff;
+  margin-bottom: 2px;
+}
+.insight-detail {
+  font-size: 12px; color: rgba(255,255,255,0.5);
+  line-height: 1.5;
+}
+
+/* ──────────────────────────────────────────────
+   TRAINING SUMMARY
+   ────────────────────────────────────────────── */
+.summary-banner {
+  padding: 20px 24px;
+  background: linear-gradient(135deg, rgba(99,102,241,0.1) 0%, rgba(255,255,255,0.03) 100%);
+  border: 1px solid rgba(99,102,241,0.15);
+  border-radius: 14px;
+  margin-bottom: 20px;
+}
+.summary-text {
+  font-size: 13px; color: rgba(255,255,255,0.6);
+  line-height: 1.6; margin-top: 12px;
+}
+.summary-stats {
+  display: flex; gap: 24px; margin-top: 14px; flex-wrap: wrap;
+}
+.summary-stat {
+  display: flex; flex-direction: column; gap: 2px;
+}
+.summary-stat-label {
+  font-size: 10px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.06em; color: rgba(255,255,255,0.35);
+}
+.summary-stat-value {
+  font-size: 18px; font-weight: 700; color: #fff;
+}
+.feature-pill {
+  display: inline-flex; align-items: center;
+  padding: 3px 10px; border-radius: 20px;
+  font-size: 11px; font-weight: 500;
+  background: rgba(99,102,241,0.12);
+  color: #818cf8;
+  border: 1px solid rgba(99,102,241,0.15);
+  margin-right: 6px; margin-top: 4px;
+}
+
+/* ──────────────────────────────────────────────
    RESPONSIVE
    ────────────────────────────────────────────── */
 @media (max-width: 900px) {
@@ -743,6 +814,9 @@ body {
 
     <!-- Metrics (hidden initially) -->
     <div id="data-metrics" class="metrics-grid" style="display:none"></div>
+
+    <!-- Auto Insights (hidden initially) -->
+    <div id="data-insights" style="display:none"></div>
 
     <!-- Target Selection -->
     <div id="target-section" style="display:none">
@@ -928,6 +1002,9 @@ body {
 
     <!-- Results (hidden until training completes) -->
     <div id="build-results" style="display:none">
+
+      <!-- Training Summary Banner -->
+      <div id="training-summary" style="display:none"></div>
 
       <!-- Best Model -->
       <div class="card mt-md" id="best-model-card" style="border-left: 3px solid #6366f1; background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(255,255,255,0.04) 100%); animation: glowPulse 3s ease-in-out infinite">
@@ -1266,6 +1343,12 @@ async function uploadFile(file) {
     document.getElementById('target-section').style.display = '';
     document.getElementById('data-tabs-section').style.display = '';
 
+    // Render auto-insights
+    if (data.insights && data.insights.length) {
+      renderInsights(data.insights);
+      document.getElementById('data-insights').style.display = '';
+    }
+
     populateExploreDropdowns();
   } catch (err2) {
     console.error('Post-upload processing error:', err2);
@@ -1540,6 +1623,9 @@ async function trainModels() {
     document.getElementById('build-results').style.display = '';
     document.getElementById('best-model-name').textContent = APP.bestModel;
 
+    // Training Summary Banner
+    if (data.summary) renderTrainingSummary(data.summary);
+
     // Leaderboard
     if (data.leaderboard) {
       renderTable('leaderboard-table', data.leaderboard.rows, data.leaderboard.columns);
@@ -1687,6 +1773,65 @@ function downloadExport(type) {
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
+}
+
+/* ──────────────────────────────────────────────
+   AUTO INSIGHTS
+   ────────────────────────────────────────────── */
+const INSIGHT_ICONS = {
+  success: '<svg class="insight-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+  warning: '<svg class="insight-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  info: '<svg class="insight-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+};
+
+function renderInsights(insights) {
+  const el = document.getElementById('data-insights');
+  if (!el || !insights || !insights.length) return;
+  el.innerHTML = '<div class="insights-grid">' + insights.map((ins, i) => `
+    <div class="insight-card ${ins.type || 'info'}" style="animation-delay:${i * 0.06}s">
+      ${INSIGHT_ICONS[ins.type] || INSIGHT_ICONS.info}
+      <div>
+        <div class="insight-title">${escHtml(ins.title || '')}</div>
+        <div class="insight-detail">${escHtml(ins.detail || '')}</div>
+      </div>
+    </div>
+  `).join('') + '</div>';
+}
+
+/* ──────────────────────────────────────────────
+   TRAINING SUMMARY
+   ────────────────────────────────────────────── */
+function renderTrainingSummary(summary) {
+  if (!summary) return;
+  const container = document.getElementById('training-summary');
+  if (!container) return;
+
+  const featurePills = (summary.top_features || []).map(f =>
+    `<span class="feature-pill">${escHtml(f)}</span>`
+  ).join('');
+
+  container.innerHTML = `
+    <div class="summary-banner">
+      <div class="card-label">Training Summary</div>
+      <div class="summary-stats">
+        <div class="summary-stat">
+          <div class="summary-stat-label">${escHtml(summary.key_metric || '')}</div>
+          <div class="summary-stat-value" style="color:#6366f1">${summary.key_metric_value || '--'}</div>
+        </div>
+        <div class="summary-stat">
+          <div class="summary-stat-label">Models Compared</div>
+          <div class="summary-stat-value">${summary.n_models || '--'}</div>
+        </div>
+        <div class="summary-stat">
+          <div class="summary-stat-label">Best Model</div>
+          <div class="summary-stat-value">${escHtml(summary.model || '--')}</div>
+        </div>
+      </div>
+      ${featurePills ? '<div style="margin-top:14px"><div class="summary-stat-label" style="margin-bottom:6px">Top Predictive Features</div>' + featurePills + '</div>' : ''}
+      <div class="summary-text">${escHtml(summary.text || '')}</div>
+    </div>
+  `;
+  container.style.display = '';
 }
 
 /* ──────────────────────────────────────────────

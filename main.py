@@ -325,6 +325,65 @@ def upload(file: UploadFile = File(...)):
     total_cells = len(df) * df.shape[1]
     miss = int(df.isna().sum().sum())
 
+    # ── Auto Insights ──
+    insights = []
+    target = S["target"]
+    task = S["task"]
+
+    # 1. Class imbalance check (classification only)
+    if task == "classification":
+        vc = df[target].value_counts(normalize=True)
+        if len(vc) >= 2 and vc.iloc[0] > 0.8:
+            insights.append({"type": "warning", "title": "Class Imbalance Detected",
+                "detail": f"'{target}' is {vc.iloc[0]*100:.0f}% class '{vc.index[0]}'. Consider enabling 'Fix Class Imbalance' during training."})
+        elif len(vc) >= 2:
+            insights.append({"type": "success", "title": "Balanced Classes",
+                "detail": f"Target '{target}' has {len(vc)} classes with reasonable balance."})
+
+    # 2. High missing columns
+    miss_pct = (df.isna().sum() / len(df) * 100).sort_values(ascending=False)
+    high_miss = miss_pct[miss_pct > 30]
+    if len(high_miss) > 0:
+        cols_str = ", ".join([f"{c} ({v:.0f}%)" for c, v in high_miss.head(3).items()])
+        insights.append({"type": "warning", "title": f"{len(high_miss)} Feature(s) with High Missing Values",
+            "detail": f"{cols_str}. These may reduce model performance."})
+    elif miss == 0:
+        insights.append({"type": "success", "title": "No Missing Values",
+            "detail": "Dataset is complete with zero missing entries."})
+
+    # 3. High cardinality categoricals
+    cat_cols = df.select_dtypes(include=["object", "category"]).columns
+    high_card = [(c, df[c].nunique()) for c in cat_cols if df[c].nunique() > 50]
+    if high_card:
+        cols_str = ", ".join([f"{c} ({n} unique)" for c, n in high_card[:3]])
+        insights.append({"type": "warning", "title": "High Cardinality Features",
+            "detail": f"{cols_str}. Consider dropping ID-like columns before training."})
+
+    # 4. Highly correlated features
+    if len(nc) >= 2:
+        try:
+            corr = df[nc].corr().abs()
+            upper = corr.where(np.triu(np.ones(corr.shape), k=1).astype(bool))
+            high_corr = [(upper.columns[j], upper.index[i], upper.iloc[i, j])
+                         for i in range(len(upper)) for j in range(len(upper.columns))
+                         if upper.iloc[i, j] > 0.9]
+            if high_corr:
+                pair = high_corr[0]
+                insights.append({"type": "info", "title": f"{len(high_corr)} Highly Correlated Pair(s)",
+                    "detail": f"e.g. '{pair[0]}' and '{pair[1]}' ({pair[2]:.2f}). Enable 'Drop Multicollinear' to handle this."})
+        except Exception:
+            pass
+
+    # 5. Constant columns
+    const_cols = [c for c in df.columns if df[c].nunique() <= 1]
+    if const_cols:
+        insights.append({"type": "warning", "title": f"{len(const_cols)} Constant Column(s)",
+            "detail": f"{', '.join(const_cols[:3])}. These provide no predictive value."})
+
+    # 6. Dataset size summary
+    insights.append({"type": "info", "title": "Dataset Overview",
+        "detail": f"{len(df):,} rows, {len(nc)} numeric and {len(cat_cols)} categorical features. Task: {task}."})
+
     return {
         "rows": len(df), "n_columns": df.shape[1],
         "missing": miss, "duplicates": int(df.duplicated().sum()),
@@ -335,6 +394,7 @@ def upload(file: UploadFile = File(...)):
         "preview": {"rows": rows_data, "columns": cols_data},
         "types": {"rows": types_rows, "columns": ["Column","Type","Non-Null","Unique"]},
         "stats": {"rows": stats_rows, "columns": stats_cols},
+        "insights": insights,
     }
 
 
@@ -929,8 +989,45 @@ def train_models(
         fig.update_layout(title=f"Model Comparison: {metrics[0]}", title_font_size=14)
         comp_fig = fig_json(fig)
 
+    # ── Training Summary ──
+    model_name = type(best).__name__
+    n_models = len(cdf)
+    key_metric_name = metrics[0] if metrics else ""
+    key_metric_val = float(cdf[key_metric_name].iloc[0]) if key_metric_name and len(cdf) > 0 else 0
+
+    # Top features
+    top_features = []
+    try:
+        if hasattr(best, 'feature_importances_'):
+            feat_names = exp.get_config('X_train').columns.tolist()
+            imp = best.feature_importances_
+            top_idx = np.argsort(imp)[::-1][:3]
+            top_features = [feat_names[i] for i in top_idx if i < len(feat_names)]
+        elif hasattr(best, 'coef_'):
+            feat_names = exp.get_config('X_train').columns.tolist()
+            coefs = np.abs(best.coef_.flatten() if best.coef_.ndim > 1 else best.coef_)
+            top_idx = np.argsort(coefs)[::-1][:3]
+            top_features = [feat_names[i] for i in top_idx if i < len(feat_names)]
+    except Exception:
+        pass
+
+    # Natural language summary
+    summary_text = f"{model_name} achieved {key_metric_val:.4f} {key_metric_name}"
+    if top_features:
+        summary_text += f". Most predictive features: {', '.join(top_features)}"
+    summary_text += f". Compared {n_models} models on {len(train_df):,} training rows."
+
+    summary = {
+        "model": model_name,
+        "n_models": n_models,
+        "key_metric": key_metric_name,
+        "key_metric_value": round(key_metric_val, 4),
+        "top_features": top_features,
+        "text": summary_text,
+    }
+
     return {
-        "model_name": type(best).__name__,
+        "model_name": model_name,
         "duplicates_removed": removed,
         "sampled": sampled,
         "train_rows": len(train_df),
@@ -940,6 +1037,7 @@ def train_models(
         "comparison_chart": comp_fig,
         "plots": S.get("plots", []),
         "n_predictions": len(S.get("predictions", [])),
+        "summary": summary,
     }
 
 
