@@ -681,46 +681,75 @@ def train_models(
         return JSONResponse({"error": f"Target '{tgt}' has only {nuniq} unique value(s)."}, 400)
 
     # Setup — always start completely fresh
+    # Clear any previous experiment state fully
+    for k in ["experiment","compare_df","best_model","active_model","tuned_model","tune_df","plots"]:
+        S.pop(k, None)
+
+    # Reset PyCaret internal globals and free memory
     try:
-        # Clear any previous experiment state fully
-        for k in ["experiment","compare_df","best_model","active_model","tuned_model","tune_df","plots"]:
-            S.pop(k, None)
-
-        # Reset PyCaret internal globals and free memory
-        try:
-            if task == "classification":
-                import pycaret.classification as _pcm
-            else:
-                import pycaret.regression as _pcm
-            if hasattr(_pcm, '_current_experiment'):
-                _pcm._current_experiment = None
-        except Exception:
-            pass
-        gc.collect()
-
-        exp = get_exp(task)
-        # Fresh copy with clean index and sanitized column names
-        train_df = work.reset_index(drop=True).copy()
-        # Ensure clean column names for scikit-learn compatibility
-        train_df.columns = [str(c).strip().replace('[','(').replace(']',')').replace('<','lt').replace('>','gt') for c in train_df.columns]
-        # Update tgt in case it was cleaned
-        tgt_clean = str(tgt).strip().replace('[','(').replace(']',')').replace('<','lt').replace('>','gt')
-        kw = dict(data=train_df, target=tgt_clean, session_id=42,
-                  train_size=1-test_size, fold=cv_folds,
-                  normalize=normalize, transformation=transform_skew,
-                  remove_multicollinearity=drop_multicollinear,
-                  multicollinearity_threshold=0.9,
-                  feature_selection=feature_selection,
-                  remove_outliers=remove_outliers, outliers_threshold=0.05,
-                  polynomial_features=polynomial_features,
-                  html=False, verbose=False,
-                  log_experiment=False, log_plots=False)
         if task == "classification":
-            kw["fix_imbalance"] = fix_imbalance
-        exp.setup(**kw)
-        S["experiment"] = exp
-    except Exception as e:
-        return JSONResponse({"error": f"Setup failed: {e}"}, 500)
+            import pycaret.classification as _pcm
+        else:
+            import pycaret.regression as _pcm
+        if hasattr(_pcm, '_current_experiment'):
+            _pcm._current_experiment = None
+    except Exception:
+        pass
+    gc.collect()
+
+    # Prepare clean DataFrame
+    train_df = work.reset_index(drop=True).copy()
+    # Sanitize column names for scikit-learn compatibility
+    train_df.columns = [str(c).strip().replace('[','(').replace(']',')').replace('<','lt').replace('>','gt') for c in train_df.columns]
+    tgt_clean = str(tgt).strip().replace('[','(').replace(']',')').replace('<','lt').replace('>','gt')
+
+    # Build setup kwargs
+    kw_full = dict(data=train_df, target=tgt_clean, session_id=42,
+                   train_size=1-test_size, fold=cv_folds,
+                   normalize=normalize, transformation=transform_skew,
+                   remove_multicollinearity=drop_multicollinear,
+                   multicollinearity_threshold=0.9,
+                   feature_selection=feature_selection,
+                   remove_outliers=remove_outliers, outliers_threshold=0.05,
+                   polynomial_features=polynomial_features,
+                   html=False, verbose=False,
+                   log_experiment=False, log_plots=False)
+    if task == "classification":
+        kw_full["fix_imbalance"] = fix_imbalance
+
+    # Try setup with full preprocessing, then fallback levels
+    exp = None
+    setup_attempts = [
+        ("full", kw_full),
+        ("no_normalize", {**kw_full, "normalize": False, "transformation": False}),
+        ("minimal", {**kw_full, "normalize": False, "transformation": False,
+                     "remove_multicollinearity": False, "feature_selection": False,
+                     "polynomial_features": False, "remove_outliers": False}),
+    ]
+    last_err = None
+    for attempt_name, kw in setup_attempts:
+        try:
+            gc.collect()
+            exp = get_exp(task)
+            # Always pass a fresh copy
+            kw["data"] = train_df.reset_index(drop=True).copy()
+            exp.setup(**kw)
+            S["experiment"] = exp
+            last_err = None
+            break
+        except Exception as e:
+            last_err = e
+            exp = None
+            # Reset PyCaret globals before retry
+            try:
+                if hasattr(_pcm, '_current_experiment'):
+                    _pcm._current_experiment = None
+            except Exception:
+                pass
+            continue
+
+    if exp is None:
+        return JSONResponse({"error": f"Setup failed: {last_err}"}, 500)
 
     # Compare
     try:
