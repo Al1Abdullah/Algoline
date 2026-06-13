@@ -703,53 +703,28 @@ def train_models(
     train_df.columns = [str(c).strip().replace('[','(').replace(']',')').replace('<','lt').replace('>','gt') for c in train_df.columns]
     tgt_clean = str(tgt).strip().replace('[','(').replace(']',')').replace('<','lt').replace('>','gt')
 
-    # Build setup kwargs
-    kw_full = dict(data=train_df, target=tgt_clean, session_id=42,
-                   train_size=1-test_size, fold=cv_folds,
-                   normalize=normalize, transformation=transform_skew,
-                   remove_multicollinearity=drop_multicollinear,
-                   multicollinearity_threshold=0.9,
-                   feature_selection=feature_selection,
-                   remove_outliers=remove_outliers, outliers_threshold=0.05,
-                   polynomial_features=polynomial_features,
-                   html=False, verbose=False,
-                   log_experiment=False, log_plots=False)
-    if task == "classification":
-        kw_full["fix_imbalance"] = fix_imbalance
-
-    # Try setup with full preprocessing, then fallback levels
-    exp = None
-    setup_attempts = [
-        ("full", kw_full),
-        ("no_normalize", {**kw_full, "normalize": False, "transformation": False}),
-        ("minimal", {**kw_full, "normalize": False, "transformation": False,
-                     "remove_multicollinearity": False, "feature_selection": False,
-                     "polynomial_features": False, "remove_outliers": False}),
-    ]
-    last_err = None
-    for attempt_name, kw in setup_attempts:
-        try:
-            gc.collect()
-            exp = get_exp(task)
-            # Always pass a fresh copy
-            kw["data"] = train_df.reset_index(drop=True).copy()
-            exp.setup(**kw)
-            S["experiment"] = exp
-            last_err = None
-            break
-        except Exception as e:
-            last_err = e
-            exp = None
-            # Reset PyCaret globals before retry
-            try:
-                if hasattr(_pcm, '_current_experiment'):
-                    _pcm._current_experiment = None
-            except Exception:
-                pass
-            continue
-
-    if exp is None:
-        return JSONResponse({"error": f"Setup failed: {last_err}"}, 500)
+    try:
+        exp = get_exp(task)
+        # NOTE: normalize and transformation are forced OFF due to a PyCaret 3.3.2
+        # bug where the normalize pipeline creates feature names with spaces during
+        # transform but underscores during fit, crashing on any categorical dataset.
+        # Tree-based models (which PyCaret selects most often) don't need normalization.
+        kw = dict(data=train_df, target=tgt_clean, session_id=42,
+                  train_size=1-test_size, fold=cv_folds,
+                  normalize=False, transformation=False,
+                  remove_multicollinearity=drop_multicollinear,
+                  multicollinearity_threshold=0.9,
+                  feature_selection=feature_selection,
+                  remove_outliers=remove_outliers, outliers_threshold=0.05,
+                  polynomial_features=polynomial_features,
+                  html=False, verbose=False,
+                  log_experiment=False, log_plots=False)
+        if task == "classification":
+            kw["fix_imbalance"] = fix_imbalance
+        exp.setup(**kw)
+        S["experiment"] = exp
+    except Exception as e:
+        return JSONResponse({"error": f"Setup failed: {e}"}, 500)
 
     # Compare
     try:
