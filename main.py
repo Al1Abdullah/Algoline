@@ -681,7 +681,7 @@ def train_models(
         return JSONResponse({"error": f"Target '{tgt}' has only {nuniq} unique value(s)."}, 400)
 
     # Smart sampling: for large datasets, sample to keep training fast on free CPU
-    MAX_TRAIN_ROWS = 15000
+    MAX_TRAIN_ROWS = 8000
     sampled = False
     original_rows = len(work)
     if len(work) > MAX_TRAIN_ROWS:
@@ -754,9 +754,9 @@ def train_models(
     except Exception as e:
         return JSONResponse({"error": f"Setup failed: {e}"}, 500)
 
-    # Compare
+    # Compare — limit to fast models to keep training under ~2 min on free CPU
     try:
-        best = exp.compare_models()
+        best = exp.compare_models(n_select=1, budget_time=4.0)
         cdf = norm_lb(exp.pull())
         S.update({"compare_df": cdf, "best_model": best, "active_model": best})
         S.pop("tuned_model", None); S.pop("tune_df", None)
