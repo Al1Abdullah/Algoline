@@ -1067,55 +1067,20 @@ async function uploadFile(file) {
     <div class="upload-area-sub">Please wait</div>
   `;
 
+  // Step 1: Upload the file
+  let data;
   try {
     const fd = new FormData();
     fd.append('file', file);
-    const data = await apiJson('/api/upload', { method: 'POST', body: fd });
-
-    // Update state
-    APP.columns = data.columns || [];
-    APP.numericColumns = data.numeric_columns || [];
-
-    // Show success in upload area
-    area.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px;margin-bottom:10px">
-        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-      </svg>
-      <div class="upload-area-title" style="color:#10b981">${escHtml(file.name)} uploaded</div>
-      <div class="upload-area-sub">${data.rows || 0} rows, ${data.columns ? data.columns.length : 0} columns</div>
-    `;
-    area.onclick = null;
-
-    // Show metrics
-    renderMetrics(data);
-
-    // Populate target select
-    populateTargetSelect(data.columns || []);
-    // Auto-select the backend's default target
-    if (data.target) {
-      document.getElementById('target-select').value = data.target;
-      setTarget(data.target);
+    const res = await fetch('/api/upload', { method: 'POST', body: fd });
+    if (!res.ok) {
+      let msg = 'Upload failed';
+      try { const e = await res.json(); msg = e.detail || e.error || e.message || msg; } catch (_) {}
+      throw new Error(msg);
     }
-
-    // Populate preview / types / stats
-    if (data.preview) {
-      renderTable('preview-table', data.preview.rows, data.preview.columns);
-    }
-    if (data.types) {
-      renderTable('types-table', data.types.rows, data.types.columns);
-    }
-    if (data.stats) {
-      renderTable('stats-table', data.stats.rows, data.stats.columns);
-    }
-
-    document.getElementById('data-metrics').style.display = '';
-    document.getElementById('target-section').style.display = '';
-    document.getElementById('data-tabs-section').style.display = '';
-
-    // Populate explore dropdowns
-    populateExploreDropdowns();
-
+    data = await res.json();
   } catch (err) {
+    console.error('Upload error:', err);
     area.innerHTML = `
       <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px;margin-bottom:10px">
         <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
@@ -1124,6 +1089,47 @@ async function uploadFile(file) {
       <div class="upload-area-sub">${escHtml(err.message)}</div>
     `;
     area.onclick = () => document.getElementById('file-input').click();
+    return;
+  }
+
+  // Step 2: Process the response (errors here should NOT show "Upload failed")
+  try {
+    APP.columns = data.columns || [];
+    APP.numericColumns = data.numeric_columns || [];
+
+    area.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px;margin-bottom:10px">
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <div class="upload-area-title" style="color:#10b981">${escHtml(file.name)} uploaded</div>
+      <div class="upload-area-sub">${data.rows || 0} rows, ${(data.columns || []).length} columns</div>
+    `;
+    area.onclick = null;
+
+    renderMetrics(data);
+    populateTargetSelect(data.columns || []);
+
+    if (data.target) {
+      document.getElementById('target-select').value = data.target;
+      APP.target = data.target;
+      APP.task = data.task || 'classification';
+      document.getElementById('task-badge-wrap').innerHTML =
+        '<span class="task-badge">' + escHtml(APP.task) + '</span>';
+      if (APP.task === 'regression') { selectTaskByValue('regression'); }
+      else { selectTaskByValue('classification'); }
+    }
+
+    if (data.preview) renderTable('preview-table', data.preview.rows, data.preview.columns);
+    if (data.types) renderTable('types-table', data.types.rows, data.types.columns);
+    if (data.stats) renderTable('stats-table', data.stats.rows, data.stats.columns);
+
+    document.getElementById('data-metrics').style.display = '';
+    document.getElementById('target-section').style.display = '';
+    document.getElementById('data-tabs-section').style.display = '';
+
+    populateExploreDropdowns();
+  } catch (err2) {
+    console.error('Post-upload processing error:', err2);
   }
 }
 
