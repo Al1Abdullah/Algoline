@@ -1127,8 +1127,28 @@ async function uploadFile(file) {
       </svg>
       <div class="upload-area-title" style="color:#10b981">${escHtml(file.name)} uploaded</div>
       <div class="upload-area-sub">${data.rows || 0} rows, ${(data.columns || []).length} columns</div>
+      <div style="margin-top:8px;font-size:11px;color:#71717a">Click or drag to replace dataset</div>
     `;
-    area.onclick = null;
+    // Keep upload area clickable for re-uploading
+    area.onclick = () => document.getElementById('file-input').click();
+
+    // Reset Build section (clear previous training results)
+    const resultsEl = document.getElementById('build-results');
+    if (resultsEl) resultsEl.style.display = 'none';
+    const evalPlots = document.getElementById('eval-plots');
+    if (evalPlots) evalPlots.innerHTML = '';
+    const lbTable = document.getElementById('leaderboard-table');
+    if (lbTable) lbTable.innerHTML = '';
+    const metricChart = document.getElementById('metric-chart');
+    if (metricChart) metricChart.innerHTML = '';
+    // Reset Explore chart
+    const exploreChart = document.getElementById('explore-chart');
+    if (exploreChart) exploreChart.innerHTML = '';
+    // Reset Export
+    const exportModel = document.getElementById('export-model');
+    if (exportModel) exportModel.textContent = '--';
+    const exportTask = document.getElementById('export-task');
+    if (exportTask) exportTask.textContent = '--';
 
     renderMetrics(data);
     populateTargetSelect(data.columns || []);
