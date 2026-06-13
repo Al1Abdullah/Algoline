@@ -110,7 +110,7 @@ def gen_all_plots(exp, model, task):
                     ))
             fig = go.Figure(data=go.Heatmap(
                 z=cm, x=labels_str, y=labels_str,
-                colorscale=[[0,'#0f172a'],[0.5,'#065f46'],[1,'#10b981']],
+                colorscale=[[0,'#01243a'],[0.5,'#442342'],[1,'#e06196']],
                 showscale=True, hoverongaps=False
             ))
             fig.update_layout(
@@ -136,7 +136,7 @@ def gen_all_plots(exp, model, task):
                 roc_auc = auc(fpr, tpr)
                 fig = go.Figure()
                 fig.add_trace(go.Scatter(x=fpr, y=tpr, mode='lines',
-                    name=f'ROC (AUC={roc_auc:.3f})', line=dict(color='#10b981', width=2)))
+                    name=f'ROC (AUC={roc_auc:.3f})', line=dict(color='#e06196', width=2)))
                 fig.add_trace(go.Scatter(x=[0,1], y=[0,1], mode='lines',
                     name='Random', line=dict(color='#71717a', dash='dash', width=1)))
                 fig.update_layout(title=f'ROC Curve (AUC = {roc_auc:.3f})',
@@ -159,7 +159,7 @@ def gen_all_plots(exp, model, task):
                 ap = average_precision_score(y_binary, scores)
                 fig = go.Figure()
                 fig.add_trace(go.Scatter(x=rec, y=prec, mode='lines',
-                    name=f'PR (AP={ap:.3f})', line=dict(color='#8b5cf6', width=2), fill='tozeroy',
+                    name=f'PR (AP={ap:.3f})', line=dict(color='#f5a4c5', width=2), fill='tozeroy',
                     fillcolor='rgba(139,92,246,0.1)'))
                 fig.update_layout(title=f'Precision-Recall Curve (AP = {ap:.3f})',
                     xaxis_title='Recall', yaxis_title='Precision', height=420)
@@ -173,7 +173,7 @@ def gen_all_plots(exp, model, task):
             counts = y_pred.value_counts()
             fig = px.bar(x=counts.index.astype(str), y=counts.values,
                          color=counts.index.astype(str),
-                         color_discrete_sequence=['#10b981','#8b5cf6','#f59e0b','#ef4444','#3b82f6'])
+                         color_discrete_sequence=['#e06196','#f5a4c5','#f59e0b','#ef4444','#3b82f6'])
             fig.update_layout(title='Prediction Distribution',
                 xaxis_title='Class', yaxis_title='Count',
                 showlegend=False, height=380)
@@ -189,7 +189,7 @@ def gen_all_plots(exp, model, task):
             residuals = y_true - y_pred
             fig = go.Figure()
             fig.add_trace(go.Scatter(x=y_pred, y=residuals, mode='markers',
-                marker=dict(color='#10b981', size=5, opacity=0.6), name='Residuals'))
+                marker=dict(color='#e06196', size=5, opacity=0.6), name='Residuals'))
             fig.add_hline(y=0, line_dash="dash", line_color="#71717a")
             fig.update_layout(title='Residuals Plot',
                 xaxis_title='Predicted', yaxis_title='Residual', height=420)
@@ -203,10 +203,10 @@ def gen_all_plots(exp, model, task):
             y_pred = preds['prediction_label'] if 'prediction_label' in preds.columns else preds['Label']
             fig = go.Figure()
             fig.add_trace(go.Scatter(x=y_true, y=y_pred, mode='markers',
-                marker=dict(color='#8b5cf6', size=5, opacity=0.6), name='Predictions'))
+                marker=dict(color='#f5a4c5', size=5, opacity=0.6), name='Predictions'))
             mn, mx = min(y_true.min(), y_pred.min()), max(y_true.max(), y_pred.max())
             fig.add_trace(go.Scatter(x=[mn,mx], y=[mn,mx], mode='lines',
-                name='Perfect', line=dict(color='#10b981', dash='dash', width=2)))
+                name='Perfect', line=dict(color='#e06196', dash='dash', width=2)))
             fig.update_layout(title='Predicted vs Actual',
                 xaxis_title='Actual', yaxis_title='Predicted', height=420)
             plots.append({"label": "Predicted vs Actual", "figure": fig_json(fig)})
@@ -219,7 +219,7 @@ def gen_all_plots(exp, model, task):
             y_pred = preds['prediction_label'] if 'prediction_label' in preds.columns else preds['Label']
             residuals = y_true - y_pred
             fig = go.Figure(data=go.Histogram(x=residuals, nbinsx=40,
-                marker_color='#10b981', opacity=0.75))
+                marker_color='#e06196', opacity=0.75))
             fig.update_layout(title='Residual Distribution',
                 xaxis_title='Residual', yaxis_title='Count', height=380)
             plots.append({"label": "Residual Distribution", "figure": fig_json(fig)})
@@ -234,7 +234,7 @@ def gen_all_plots(exp, model, task):
             imp_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
             imp_df = imp_df.sort_values('Importance', ascending=True).tail(15)
             fig = go.Figure(go.Bar(x=imp_df['Importance'], y=imp_df['Feature'],
-                orientation='h', marker_color='#10b981'))
+                orientation='h', marker_color='#e06196'))
             fig.update_layout(title='Feature Importance (Top 15)',
                 xaxis_title='Importance', height=max(350, len(imp_df)*28 + 80),
                 margin=dict(l=160))
@@ -246,7 +246,7 @@ def gen_all_plots(exp, model, task):
                 imp_df = pd.DataFrame({'Feature': feature_names, 'Coefficient': coefs})
                 imp_df['AbsCoef'] = imp_df['Coefficient'].abs()
                 imp_df = imp_df.sort_values('AbsCoef', ascending=True).tail(15)
-                colors = ['#10b981' if v >= 0 else '#ef4444' for v in imp_df['Coefficient']]
+                colors = ['#e06196' if v >= 0 else '#ef4444' for v in imp_df['Coefficient']]
                 fig = go.Figure(go.Bar(x=imp_df['Coefficient'], y=imp_df['Feature'],
                     orientation='h', marker_color=colors))
                 fig.update_layout(title='Feature Coefficients (Top 15)',
