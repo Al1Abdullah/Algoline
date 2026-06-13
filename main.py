@@ -680,6 +680,21 @@ def train_models(
     if nuniq < 2:
         return JSONResponse({"error": f"Target '{tgt}' has only {nuniq} unique value(s)."}, 400)
 
+    # Smart sampling: for large datasets, sample to keep training fast on free CPU
+    MAX_TRAIN_ROWS = 15000
+    sampled = False
+    original_rows = len(work)
+    if len(work) > MAX_TRAIN_ROWS:
+        sampled = True
+        if task == "classification" and work[tgt].nunique() <= 50:
+            # Stratified sampling to preserve class distribution
+            work = work.groupby(tgt, group_keys=False).apply(
+                lambda x: x.sample(min(len(x), max(2, int(MAX_TRAIN_ROWS * len(x) / original_rows))),
+                                   random_state=42)
+            ).reset_index(drop=True)
+        else:
+            work = work.sample(MAX_TRAIN_ROWS, random_state=42).reset_index(drop=True)
+
     # Setup — always start completely fresh
     # Clear any previous experiment state fully
     for k in ["experiment","compare_df","best_model","active_model","tuned_model","tune_df","plots"]:
@@ -768,6 +783,9 @@ def train_models(
     return {
         "model_name": type(best).__name__,
         "duplicates_removed": removed,
+        "sampled": sampled,
+        "train_rows": len(train_df),
+        "original_rows": original_rows,
         "leaderboard": {"rows": lb_rows, "columns": lb_cols},
         "metrics": metrics,
         "comparison_chart": comp_fig,
