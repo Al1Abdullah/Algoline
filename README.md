@@ -1,8 +1,8 @@
 ---
 title: AutoML Studio
 emoji: ⚡
-colorFrom: teal
-colorTo: green
+colorFrom: green
+colorTo: blue
 sdk: streamlit
 sdk_version: 1.45.1
 app_file: main.py
