@@ -318,6 +318,11 @@ def train_models(
     if drop_duplicates:
         n0 = len(work); work = work.drop_duplicates(); removed = n0 - len(work)
 
+    # Drop rows where the target has missing values (PyCaret requires this)
+    tgt_missing = work[tgt].isna().sum()
+    if tgt_missing > 0:
+        work = work.dropna(subset=[tgt])
+
     # Validate
     nuniq = work[tgt].nunique(dropna=True)
     if nuniq < 2:
