@@ -28,16 +28,31 @@ px.defaults.color_discrete_sequence = COLORS
 # ────────────────────────────────────────────────────────────
 
 def safe_json(df, n=100):
+    """Convert DataFrame rows to JSON-safe dicts.  Handles NaN, inf, numpy scalars."""
     d = df.head(n).copy()
-    for c in d.columns:
-        try:
-            if d[c].dtype == "object" or d[c].apply(type).nunique() > 1:
-                d[c] = d[c].astype(str)
-        except Exception:
-            d[c] = d[c].astype(str)
-    # Replace NaN with None for JSON
-    d = d.where(pd.notnull(d), None)
-    return d.to_dict(orient="records"), d.columns.tolist()
+    cols = d.columns.tolist()
+    records = []
+    for _, row in d.iterrows():
+        r = {}
+        for c in cols:
+            v = row[c]
+            if v is None or (isinstance(v, float) and (np.isnan(v) or np.isinf(v))):
+                r[c] = None
+            elif pd.isna(v):
+                r[c] = None
+            elif isinstance(v, (np.integer,)):
+                r[c] = int(v)
+            elif isinstance(v, (np.floating,)):
+                fv = float(v)
+                r[c] = None if (np.isnan(fv) or np.isinf(fv)) else fv
+            elif isinstance(v, np.bool_):
+                r[c] = bool(v)
+            elif isinstance(v, (str, int, float, bool)):
+                r[c] = v
+            else:
+                r[c] = str(v)
+        records.append(r)
+    return records, cols
 
 def infer_task(df, target):
     y = df[target].dropna()
@@ -245,6 +260,14 @@ def explore_scatter():
     fig.update_layout(title=f"Top {n} features by target correlation", title_font_size=14)
     return {"figure": fig_json(fig, 520)}
 
+def _sf(v, d=2):
+    """Safe float for JSON — returns None for NaN/inf."""
+    try:
+        f = float(v)
+        return None if (np.isnan(f) or np.isinf(f)) else round(f, d)
+    except Exception:
+        return None
+
 @app.post("/api/explore/quality")
 def explore_quality():
     if "df" not in S: return JSONResponse({"error": "No data"}, 400)
@@ -259,8 +282,8 @@ def explore_quality():
         out = int(((s < q1-1.5*iqr)|(s > q3+1.5*iqr)).sum()) if iqr else 0
         miss = int(df[c].isna().sum())
         rows.append({"Feature":c, "Missing":miss, "Missing%":round(miss/len(df)*100,1),
-                      "Unique":int(df[c].nunique()), "Mean":round(float(s.mean()),2),
-                      "Std":round(float(s.std()),2), "Skew":round(float(s.skew()),2),
+                      "Unique":int(df[c].nunique()), "Mean":_sf(s.mean()),
+                      "Std":_sf(s.std()), "Skew":_sf(s.skew()),
                       "Outliers":out})
     return {"rows": rows, "columns": ["Feature","Missing","Missing%","Unique","Mean","Std","Skew","Outliers"]}
 
