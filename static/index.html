@@ -1016,7 +1016,7 @@ async function apiFetch(url, options) {
     const res = await fetch(url, options);
     if (!res.ok) {
       let msg = 'Request failed';
-      try { const e = await res.json(); msg = e.detail || e.message || msg; } catch (_) {}
+      try { const e = await res.json(); msg = e.detail || e.error || e.message || msg; } catch (_) {}
       throw new Error(msg);
     }
     return res;
@@ -1091,6 +1091,11 @@ async function uploadFile(file) {
 
     // Populate target select
     populateTargetSelect(data.columns || []);
+    // Auto-select the backend's default target
+    if (data.target) {
+      document.getElementById('target-select').value = data.target;
+      setTarget(data.target);
+    }
 
     // Populate preview / types / stats
     if (data.preview) {

@@ -160,10 +160,10 @@ def upload(file: UploadFile = File(...)):
     miss = int(df.isna().sum().sum())
 
     return {
-        "rows": len(df), "columns": df.shape[1],
+        "rows": len(df), "n_columns": df.shape[1],
         "missing": miss, "duplicates": int(df.duplicated().sum()),
         "missing_pct": round(miss / total_cells * 100, 1) if total_cells else 0,
-        "column_names": df.columns.tolist(),
+        "columns": df.columns.tolist(),
         "numeric_columns": nc,
         "target": S["target"], "task": S["task"],
         "preview": {"rows": rows_data, "columns": cols_data},
