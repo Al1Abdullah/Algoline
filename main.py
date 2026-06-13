@@ -1,6 +1,6 @@
 """AutoML Studio — FastAPI Backend"""
 
-import os, glob, warnings, tempfile, base64, json, io
+import os, glob, warnings, tempfile, base64, json, io, gc
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -143,11 +143,12 @@ def upload(file: UploadFile = File(...)):
         buf = io.BytesIO(file.file.read())
         if name.endswith(".tsv"):
             df = pd.read_csv(buf, sep="\t")
-        elif name.endswith(".xlsx"):
+        elif name.endswith((".xlsx", ".xls")):
             df = pd.read_excel(buf)
         else:
             df = pd.read_csv(buf)
-        df.columns = [str(c).strip() for c in df.columns]
+        # Clean column names: strip whitespace, replace problematic characters
+        df.columns = [str(c).strip().replace('[', '(').replace(']', ')').replace('<', 'lt').replace('>', 'gt') for c in df.columns]
     except Exception as e:
         return JSONResponse({"error": f"Could not read file: {e}"}, 400)
 
@@ -194,6 +195,9 @@ def set_target(target: str = Form(...)):
         return JSONResponse({"error": "No data loaded"}, 400)
     S["target"] = target
     S["task"] = infer_task(S["df"], target)
+    # Clear stale training state when target changes
+    for k in ["experiment","compare_df","best_model","active_model","tuned_model","tune_df","plots"]:
+        S.pop(k, None)
     return {"target": target, "task": S["task"]}
 
 
@@ -678,17 +682,11 @@ def train_models(
 
     # Setup — always start completely fresh
     try:
-        # Clear any previous experiment state
-        if "experiment" in S:
-            del S["experiment"]
-        S.pop("compare_df", None)
-        S.pop("best_model", None)
-        S.pop("active_model", None)
-        S.pop("tuned_model", None)
-        S.pop("tune_df", None)
-        S.pop("plots", None)
+        # Clear any previous experiment state fully
+        for k in ["experiment","compare_df","best_model","active_model","tuned_model","tune_df","plots"]:
+            S.pop(k, None)
 
-        # Reset PyCaret internal globals
+        # Reset PyCaret internal globals and free memory
         try:
             if task == "classification":
                 import pycaret.classification as _pcm
@@ -698,11 +696,16 @@ def train_models(
                 _pcm._current_experiment = None
         except Exception:
             pass
+        gc.collect()
 
         exp = get_exp(task)
-        # Fresh copy with clean index to avoid stale feature names
+        # Fresh copy with clean index and sanitized column names
         train_df = work.reset_index(drop=True).copy()
-        kw = dict(data=train_df, target=tgt, session_id=42,
+        # Ensure clean column names for scikit-learn compatibility
+        train_df.columns = [str(c).strip().replace('[','(').replace(']',')').replace('<','lt').replace('>','gt') for c in train_df.columns]
+        # Update tgt in case it was cleaned
+        tgt_clean = str(tgt).strip().replace('[','(').replace(']',')').replace('<','lt').replace('>','gt')
+        kw = dict(data=train_df, target=tgt_clean, session_id=42,
                   train_size=1-test_size, fold=cv_folds,
                   normalize=normalize, transformation=transform_skew,
                   remove_multicollinearity=drop_multicollinear,
