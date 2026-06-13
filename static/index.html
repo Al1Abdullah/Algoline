@@ -697,88 +697,69 @@ body { overflow-x: hidden; }
   <!-- ──────── EXPLORE SECTION ──────── -->
   <div id="sec-explore" class="section">
     <h1 class="section-title">Explore</h1>
-    <p class="section-subtitle">Visualize features, distributions, correlations, and data quality</p>
+    <p class="section-subtitle">18 essential ML visualizations for data understanding and preprocessing</p>
 
     <div class="card">
-      <div class="tab-bar" id="explore-tab-bar">
-        <button class="tab-btn active" onclick="switchExploreTab('target')">Target</button>
-        <button class="tab-btn" onclick="switchExploreTab('missing')">Missing</button>
-        <button class="tab-btn" onclick="switchExploreTab('distribution')">Distribution</button>
-        <button class="tab-btn" onclick="switchExploreTab('correlation')">Correlation</button>
-        <button class="tab-btn" onclick="switchExploreTab('feature_target')">Feature vs Target</button>
-        <button class="tab-btn" onclick="switchExploreTab('outliers')">Outliers</button>
-        <button class="tab-btn" onclick="switchExploreTab('boxplot')">Boxplot</button>
-        <button class="tab-btn" onclick="switchExploreTab('scatter')">Scatter Matrix</button>
-        <button class="tab-btn" onclick="switchExploreTab('quality')">Quality</button>
+      <div class="tab-bar" id="explore-main-tabs">
+        <button class="tab-btn active" onclick="switchExploreMain('plots')">Visualizations</button>
+        <button class="tab-btn" onclick="switchExploreMain('quality')">Data Quality</button>
       </div>
 
-      <!-- Target Distribution -->
-      <div id="explore-tab-target" class="tab-panel active">
-        <div class="chart-container" id="target-chart"></div>
-      </div>
-
-      <!-- Missing Values -->
-      <div id="explore-tab-missing" class="tab-panel">
-        <div class="chart-container" id="missing-chart"></div>
-        <div id="missing-msg" style="display:none;text-align:center;padding:32px 0;color:#71717a"></div>
-      </div>
-
-      <!-- Distribution -->
-      <div id="explore-tab-distribution" class="tab-panel">
-        <div class="flex-row mb-md">
-          <div class="form-group" style="margin:0;min-width:200px">
+      <!-- Plots Panel -->
+      <div id="explore-panel-plots" class="tab-panel active">
+        <div class="flex-row mb-md" style="gap:12px;flex-wrap:wrap;align-items:flex-end">
+          <div class="form-group" style="margin:0;min-width:240px;flex:1">
+            <label class="form-label">Plot Type</label>
+            <select class="form-select" id="plot-type" onchange="onPlotTypeChange()">
+              <optgroup label="Distribution Analysis">
+                <option value="histogram">Histogram</option>
+                <option value="kde">KDE Plot</option>
+                <option value="boxplot">Box Plot</option>
+                <option value="violin">Violin Plot</option>
+              </optgroup>
+              <optgroup label="Missing Data">
+                <option value="missing_bar">Missing Value Bar Chart</option>
+                <option value="missing_heatmap">Missing Value Heatmap</option>
+              </optgroup>
+              <optgroup label="Correlation and Relationships">
+                <option value="correlation">Correlation Heatmap</option>
+                <option value="pairplot">Pair Plot</option>
+                <option value="scatter">Scatter Plot</option>
+                <option value="jointplot">Joint Plot</option>
+              </optgroup>
+              <optgroup label="Target Analysis">
+                <option value="countplot">Count Plot</option>
+                <option value="pie">Pie Chart</option>
+                <option value="class_dist">Class Distribution</option>
+                <option value="target_hist">Target Histogram</option>
+                <option value="mean_target">Mean Target per Category</option>
+              </optgroup>
+              <optgroup label="Advanced">
+                <option value="scatter_index">Scatter vs Index</option>
+                <option value="grouped_box">Grouped Box Plot</option>
+                <option value="facetgrid">FacetGrid / Small Multiples</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="form-group" id="feat1-group" style="margin:0;min-width:180px;flex:0.7">
             <label class="form-label">Feature</label>
-            <select class="form-select" id="dist-feature" onchange="loadDistribution()">
-              <option value="">Select feature...</option>
+            <select class="form-select" id="plot-feat1" onchange="generatePlot()">
+              <option value="">Select...</option>
+            </select>
+          </div>
+          <div class="form-group" id="feat2-group" style="margin:0;min-width:180px;flex:0.7;display:none">
+            <label class="form-label">Feature 2</label>
+            <select class="form-select" id="plot-feat2" onchange="generatePlot()">
+              <option value="">Select...</option>
             </select>
           </div>
         </div>
-        <div class="chart-container" id="dist-chart"></div>
+        <div class="chart-container" id="explore-chart"></div>
+        <div id="explore-msg" style="display:none;text-align:center;padding:40px 0;color:#71717a"></div>
       </div>
 
-      <!-- Correlation -->
-      <div id="explore-tab-correlation" class="tab-panel">
-        <div class="chart-container" id="corr-chart"></div>
-      </div>
-
-      <!-- Feature vs Target -->
-      <div id="explore-tab-feature_target" class="tab-panel">
-        <div class="flex-row mb-md">
-          <div class="form-group" style="margin:0;min-width:200px">
-            <label class="form-label">Feature</label>
-            <select class="form-select" id="ft-feature" onchange="loadFeatureTarget()">
-              <option value="">Select feature...</option>
-            </select>
-          </div>
-        </div>
-        <div class="chart-container" id="ft-chart"></div>
-      </div>
-
-      <!-- Outliers Overview -->
-      <div id="explore-tab-outliers" class="tab-panel">
-        <div class="chart-container" id="outliers-chart"></div>
-      </div>
-
-      <!-- Boxplot -->
-      <div id="explore-tab-boxplot" class="tab-panel">
-        <div class="flex-row mb-md">
-          <div class="form-group" style="margin:0;min-width:200px">
-            <label class="form-label">Feature</label>
-            <select class="form-select" id="box-feature" onchange="loadBoxplot()">
-              <option value="">Select feature...</option>
-            </select>
-          </div>
-        </div>
-        <div class="chart-container" id="box-chart"></div>
-      </div>
-
-      <!-- Scatter Matrix -->
-      <div id="explore-tab-scatter" class="tab-panel">
-        <div class="chart-container" id="scatter-chart" style="min-height:500px"></div>
-      </div>
-
-      <!-- Quality -->
-      <div id="explore-tab-quality" class="tab-panel">
+      <!-- Quality Panel -->
+      <div id="explore-panel-quality" class="tab-panel">
         <div class="table-wrap" id="quality-table"></div>
       </div>
     </div>
@@ -1226,124 +1207,104 @@ function switchDataTab(tab) {
 /* ──────────────────────────────────────────────
    EXPLORE SECTION
    ────────────────────────────────────────────── */
+
+// Plot type configuration: which features each plot needs
+const PLOT_CONF = {
+  histogram:       { feat1: true,  feat2: false, endpoint: '/api/explore/distribution' },
+  kde:             { feat1: true,  feat2: false, endpoint: '/api/explore/kde' },
+  boxplot:         { feat1: true,  feat2: false, endpoint: '/api/explore/boxplot' },
+  violin:          { feat1: true,  feat2: false, endpoint: '/api/explore/violin' },
+  missing_bar:     { feat1: false, feat2: false, endpoint: '/api/explore/missing' },
+  missing_heatmap: { feat1: false, feat2: false, endpoint: '/api/explore/missing_heatmap' },
+  correlation:     { feat1: false, feat2: false, endpoint: '/api/explore/correlation' },
+  pairplot:        { feat1: false, feat2: false, endpoint: '/api/explore/pairplot' },
+  scatter:         { feat1: true,  feat2: true,  endpoint: '/api/explore/scatter_xy' },
+  jointplot:       { feat1: true,  feat2: true,  endpoint: '/api/explore/jointplot' },
+  countplot:       { feat1: true,  feat2: false, endpoint: '/api/explore/countplot' },
+  pie:             { feat1: false, feat2: false, endpoint: '/api/explore/pie' },
+  class_dist:      { feat1: false, feat2: false, endpoint: '/api/explore/target' },
+  target_hist:     { feat1: false, feat2: false, endpoint: '/api/explore/target' },
+  mean_target:     { feat1: true,  feat2: false, endpoint: '/api/explore/mean_target' },
+  scatter_index:   { feat1: true,  feat2: false, endpoint: '/api/explore/scatter_index' },
+  grouped_box:     { feat1: true,  feat2: false, endpoint: '/api/explore/grouped_box' },
+  facetgrid:       { feat1: true,  feat2: false, endpoint: '/api/explore/facetgrid' }
+};
+
 function populateExploreDropdowns() {
   const cols = APP.columns;
-  const numCols = APP.numericColumns.length ? APP.numericColumns : cols;
-  ['dist-feature', 'box-feature', 'ft-feature'].forEach(id => {
+  ['plot-feat1', 'plot-feat2'].forEach(id => {
     const sel = document.getElementById(id);
     if (!sel) return;
-    sel.innerHTML = '<option value="">Select feature...</option>';
+    sel.innerHTML = '<option value="">Select...</option>';
     cols.forEach(c => {
       sel.innerHTML += '<option value="' + escHtml(c) + '">' + escHtml(c) + '</option>';
     });
   });
 }
 
-function switchExploreTab(tab) {
-  document.querySelectorAll('#explore-tab-bar .tab-btn').forEach(b => b.classList.remove('active'));
+function switchExploreMain(tab) {
+  document.querySelectorAll('#explore-main-tabs .tab-btn').forEach(b => b.classList.remove('active'));
   document.querySelectorAll('#sec-explore .tab-panel').forEach(p => p.classList.remove('active'));
   event.target.classList.add('active');
-  document.getElementById('explore-tab-' + tab).classList.add('active');
-
-  // Auto-load tabs that don't need user selection
-  if (tab === 'target') loadTarget();
-  if (tab === 'missing') loadMissing();
-  if (tab === 'correlation') loadCorrelation();
-  if (tab === 'outliers') loadOutliers();
-  if (tab === 'scatter') loadScatter();
+  document.getElementById('explore-panel-' + tab).classList.add('active');
   if (tab === 'quality') loadQuality();
 }
 
-async function loadTarget() {
-  try {
-    const data = await apiJson('/api/explore/target', { method: 'POST' });
-    if (data.figure) renderPlotly('target-chart', data.figure);
-    else document.getElementById('target-chart').innerHTML = '<p style="color:#71717a;padding:20px">No target data</p>';
-  } catch (err) {
-    document.getElementById('target-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
+function onPlotTypeChange() {
+  const type = document.getElementById('plot-type').value;
+  const conf = PLOT_CONF[type] || {};
+  document.getElementById('feat1-group').style.display = conf.feat1 ? '' : 'none';
+  document.getElementById('feat2-group').style.display = conf.feat2 ? '' : 'none';
+
+  // Auto-generate if no feature selection needed
+  if (!conf.feat1 && !conf.feat2) {
+    generatePlot();
+  } else {
+    // Clear chart and show hint
+    document.getElementById('explore-chart').innerHTML = '';
+    document.getElementById('explore-msg').style.display = '';
+    document.getElementById('explore-msg').textContent = 'Select a feature to generate the plot';
   }
 }
 
-async function loadMissing() {
+async function generatePlot() {
+  const type = document.getElementById('plot-type').value;
+  const conf = PLOT_CONF[type];
+  if (!conf) return;
+
+  const f1 = document.getElementById('plot-feat1').value;
+  const f2 = document.getElementById('plot-feat2').value;
+
+  // Validate required features
+  if (conf.feat1 && !f1) return;
+  if (conf.feat2 && !f2) return;
+
+  const chart = document.getElementById('explore-chart');
+  const msg = document.getElementById('explore-msg');
+
+  // Show loading
+  chart.innerHTML = '<div style="display:flex;justify-content:center;padding:60px 0"><div class="spinner"></div></div>';
+  msg.style.display = 'none';
+
   try {
-    const data = await apiJson('/api/explore/missing', { method: 'POST' });
-    const chart = document.getElementById('missing-chart');
-    const msg = document.getElementById('missing-msg');
+    const fd = new FormData();
+    if (conf.feat1 && f1) fd.append('feature', f1);
+    if (conf.feat2 && f2) fd.append('feature2', f2);
+
+    const data = await apiJson(conf.endpoint, { method: 'POST', body: fd });
+
     if (data.figure) {
       chart.style.display = '';
       msg.style.display = 'none';
-      renderPlotly('missing-chart', data.figure);
+      renderPlotly('explore-chart', data.figure);
     } else {
       chart.style.display = 'none';
       msg.style.display = '';
-      msg.textContent = data.message || 'No missing values found in the dataset';
+      msg.textContent = data.message || 'No data available for this plot';
     }
   } catch (err) {
-    document.getElementById('missing-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
-  }
-}
-
-async function loadDistribution() {
-  const feature = document.getElementById('dist-feature').value;
-  if (!feature) return;
-  try {
-    const fd = new FormData(); fd.append('feature', feature);
-    const data = await apiJson('/api/explore/distribution', { method: 'POST', body: fd });
-    if (data.figure) renderPlotly('dist-chart', data.figure);
-  } catch (err) {
-    document.getElementById('dist-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
-  }
-}
-
-async function loadCorrelation() {
-  try {
-    const data = await apiJson('/api/explore/correlation', { method: 'POST' });
-    if (data.figure) renderPlotly('corr-chart', data.figure);
-  } catch (err) {
-    document.getElementById('corr-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
-  }
-}
-
-async function loadFeatureTarget() {
-  const feature = document.getElementById('ft-feature').value;
-  if (!feature) return;
-  try {
-    const fd = new FormData(); fd.append('feature', feature);
-    const data = await apiJson('/api/explore/feature_target', { method: 'POST', body: fd });
-    if (data.figure) renderPlotly('ft-chart', data.figure);
-  } catch (err) {
-    document.getElementById('ft-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
-  }
-}
-
-async function loadOutliers() {
-  try {
-    const data = await apiJson('/api/explore/outliers', { method: 'POST' });
-    if (data.figure) renderPlotly('outliers-chart', data.figure);
-    else document.getElementById('outliers-chart').innerHTML = '<p style="color:#71717a;padding:20px">No numeric features for outlier analysis</p>';
-  } catch (err) {
-    document.getElementById('outliers-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
-  }
-}
-
-async function loadBoxplot() {
-  const feature = document.getElementById('box-feature').value;
-  if (!feature) return;
-  try {
-    const fd = new FormData(); fd.append('feature', feature);
-    const data = await apiJson('/api/explore/boxplot', { method: 'POST', body: fd });
-    if (data.figure) renderPlotly('box-chart', data.figure);
-  } catch (err) {
-    document.getElementById('box-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
-  }
-}
-
-async function loadScatter() {
-  try {
-    const data = await apiJson('/api/explore/scatter', { method: 'POST' });
-    if (data.figure) renderPlotly('scatter-chart', data.figure);
-  } catch (err) {
-    document.getElementById('scatter-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
+    chart.innerHTML = '<p style="color:#ef4444;padding:20px;text-align:center">' + escHtml(err.message) + '</p>';
+    msg.style.display = 'none';
   }
 }
 
@@ -1353,6 +1314,8 @@ async function loadQuality() {
     if (data.rows && data.rows.length) {
       const cols = Object.keys(data.rows[0]);
       renderTable('quality-table', data.rows, cols);
+    } else {
+      document.getElementById('quality-table').innerHTML = '<p style="color:#71717a;padding:20px;text-align:center">No quality data available</p>';
     }
   } catch (err) {
     document.getElementById('quality-table').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
