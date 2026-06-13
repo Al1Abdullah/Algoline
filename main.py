@@ -453,10 +453,11 @@ def explore_pairplot():
             top = df[fn].corrwith(df[tgt]).abs().sort_values(ascending=False).head(n).index.tolist()
         else:
             top = fn[:n]
-        sample = df[top + [tgt]].dropna()
+        sample_cols = list(dict.fromkeys(top + [tgt]))  # deduplicate
+        sample = df[sample_cols].dropna()
         if len(sample) > 400: sample = sample.sample(400, random_state=42)
         clr = tgt if df[tgt].nunique() <= 10 else None
-        if clr and pd.api.types.is_numeric_dtype(sample[clr]):
+        if clr and clr in sample.columns and pd.api.types.is_numeric_dtype(sample[clr]):
             sample[clr] = sample[clr].astype(str)
         fig = px.scatter_matrix(sample, dimensions=top, color=clr)
         fig.update_layout(title=f"Pair Plot — Top {n} Features", title_font_size=14)
@@ -472,10 +473,11 @@ def explore_scatter_xy(feature: str = Form(...), feature2: str = Form(...)):
     if "df" not in S: return JSONResponse({"error": "No data"}, 400)
     try:
         df, tgt = S["df"], S["target"]
-        sub = df[[feature, feature2, tgt]].dropna()
+        cols = list(dict.fromkeys([feature, feature2, tgt]))  # deduplicate
+        sub = df[cols].dropna()
         if len(sub) > 2000: sub = sub.sample(2000, random_state=42)
         clr = tgt if df[tgt].nunique() <= 10 else None
-        if clr and pd.api.types.is_numeric_dtype(sub[clr]):
+        if clr and clr in sub.columns and pd.api.types.is_numeric_dtype(sub[clr]):
             sub[clr] = sub[clr].astype(str)
         fig = px.scatter(sub, x=feature, y=feature2, color=clr, opacity=0.7)
         fig.update_layout(title=f"Scatter: {feature} vs {feature2}", title_font_size=14)
@@ -685,7 +687,8 @@ def train_models(
                   feature_selection=feature_selection,
                   remove_outliers=remove_outliers, outliers_threshold=0.05,
                   polynomial_features=polynomial_features,
-                  html=False, verbose=False)
+                  html=False, verbose=False,
+                  log_experiment=False, log_plots=False)
         if task == "classification":
             kw["fix_imbalance"] = fix_imbalance
         exp.setup(**kw)
