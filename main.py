@@ -703,20 +703,33 @@ def train_models(
     train_df.columns = [str(c).strip().replace('[','(').replace(']',')').replace('<','lt').replace('>','gt') for c in train_df.columns]
     tgt_clean = str(tgt).strip().replace('[','(').replace(']',')').replace('<','lt').replace('>','gt')
 
+    # Pre-encode ALL categorical features BEFORE PyCaret to bypass its buggy
+    # ColumnTransformer that creates feature name mismatches (space vs underscore).
+    # PyCaret will only see numeric features + the target column.
+    cat_cols = train_df.select_dtypes(include=["object", "category", "bool"]).columns.tolist()
+    # Keep target column as-is (PyCaret handles target encoding itself)
+    encode_cols = [c for c in cat_cols if c != tgt_clean]
+    if encode_cols:
+        train_df = pd.get_dummies(train_df, columns=encode_cols, drop_first=False, dtype=int)
+        # Sanitize the new one-hot column names (replace spaces with underscores)
+        train_df.columns = [str(c).replace(' ', '_') for c in train_df.columns]
+
+    # Fill remaining NaN in numeric columns with median (PyCaret imputation can also bug out)
+    for col in train_df.select_dtypes(include=np.number).columns:
+        if col != tgt_clean and train_df[col].isna().any():
+            train_df[col] = train_df[col].fillna(train_df[col].median())
+
     try:
         exp = get_exp(task)
-        # NOTE: normalize and transformation are forced OFF due to a PyCaret 3.3.2
-        # bug where the normalize pipeline creates feature names with spaces during
-        # transform but underscores during fit, crashing on any categorical dataset.
-        # Tree-based models (which PyCaret selects most often) don't need normalization.
+        # All preprocessing forced OFF — we handled encoding above manually.
+        # This guarantees no feature name mismatches from PyCaret's internal pipeline.
         kw = dict(data=train_df, target=tgt_clean, session_id=42,
                   train_size=1-test_size, fold=cv_folds,
                   normalize=False, transformation=False,
-                  remove_multicollinearity=drop_multicollinear,
-                  multicollinearity_threshold=0.9,
-                  feature_selection=feature_selection,
-                  remove_outliers=remove_outliers, outliers_threshold=0.05,
-                  polynomial_features=polynomial_features,
+                  remove_multicollinearity=False,
+                  feature_selection=False,
+                  remove_outliers=False,
+                  polynomial_features=False,
                   html=False, verbose=False,
                   log_experiment=False, log_plots=False)
         if task == "classification":
