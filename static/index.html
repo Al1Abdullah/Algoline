@@ -648,13 +648,13 @@ body { overflow-x: hidden; }
     <p class="section-subtitle">Upload a dataset to begin your machine learning pipeline</p>
 
     <!-- Upload Area -->
+    <input type="file" id="file-input" accept=".csv,.tsv,.xlsx,.xls" style="display:none">
     <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
         <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
       </svg>
       <div class="upload-area-title">Drop your dataset here or click to browse</div>
       <div class="upload-area-sub">Supports CSV, TSV, XLSX</div>
-      <input type="file" id="file-input" accept=".csv,.tsv,.xlsx,.xls">
     </div>
 
     <!-- Metrics (hidden initially) -->
@@ -1122,15 +1122,23 @@ async function uploadFile(file) {
     APP.numericColumns = data.numeric_columns || [];
 
     area.innerHTML = `
-      <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px;margin-bottom:10px">
-        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
-      </svg>
-      <div class="upload-area-title" style="color:#10b981">${escHtml(file.name)} uploaded</div>
-      <div class="upload-area-sub">${data.rows || 0} rows, ${(data.columns || []).length} columns</div>
-      <div style="margin-top:8px;font-size:11px;color:#71717a">Click or drag to replace dataset</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;width:100%">
+        <div style="display:flex;align-items:center;gap:12px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:28px;height:28px;flex-shrink:0">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          <div>
+            <div style="font-size:14px;font-weight:600;color:#10b981">${escHtml(file.name)}</div>
+            <div style="font-size:12px;color:#71717a;margin-top:2px">${data.rows || 0} rows, ${(data.columns || []).length} columns</div>
+          </div>
+        </div>
+        <button onclick="event.stopPropagation();document.getElementById('file-input').click()" class="btn btn-secondary" style="padding:6px 14px;font-size:12px;white-space:nowrap">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Replace
+        </button>
+      </div>
     `;
-    // Keep upload area clickable for re-uploading
-    area.onclick = () => document.getElementById('file-input').click();
+    area.onclick = null;
 
     // Reset Build section (clear previous training results)
     const resultsEl = document.getElementById('build-results');
