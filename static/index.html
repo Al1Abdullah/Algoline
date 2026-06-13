@@ -1501,7 +1501,7 @@ function renderEvalPlots(plots) {
   container.innerHTML = plots.map(p => `
     <div class="plot-card">
       <div class="plot-card-title">${escHtml(p.label || 'Plot')}</div>
-      <img src="data:image/png;base64,${p.image}" alt="${escHtml(p.label || 'Plot')}" loading="lazy">
+      <img src="${p.image}" alt="${escHtml(p.label || 'Plot')}" loading="lazy">
     </div>
   `).join('');
 }
