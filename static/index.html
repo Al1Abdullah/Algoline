@@ -344,6 +344,8 @@ body { overflow-x: hidden; }
   padding-right: 32px;
 }
 .form-select option { background: #18181b; color: #e4e4e7; }
+.form-select optgroup { background: #18181b; color: #71717a; font-style: normal; font-weight: 600; font-size: 11px; letter-spacing: 0.04em; text-transform: uppercase; }
+.form-select optgroup option { color: #e4e4e7; font-weight: 400; font-size: 13px; text-transform: none; letter-spacing: 0; padding-left: 8px; }
 
 /* Range slider */
 .range-wrap { display: flex; align-items: center; gap: 12px; }
@@ -1010,6 +1012,10 @@ function escHtml(s) {
    PLOTLY HELPER
    ────────────────────────────────────────────── */
 function renderPlotly(divId, figure) {
+  const el = document.getElementById(divId);
+  if (!el) return;
+  // Always clear any existing content (spinner, old chart) first
+  el.innerHTML = '';
   if (!figure || !figure.data) return;
   const layout = Object.assign({}, figure.layout || {}, {
     paper_bgcolor: 'rgba(0,0,0,0)',
@@ -1019,7 +1025,11 @@ function renderPlotly(divId, figure) {
   });
   layout.xaxis = Object.assign({}, layout.xaxis || {}, { gridcolor: 'rgba(128,128,128,0.08)', zeroline: false });
   layout.yaxis = Object.assign({}, layout.yaxis || {}, { gridcolor: 'rgba(128,128,128,0.08)', zeroline: false });
-  Plotly.newPlot(divId, figure.data, layout, { responsive: true, displayModeBar: false });
+  try {
+    Plotly.newPlot(divId, figure.data, layout, { responsive: true, displayModeBar: false });
+  } catch (e) {
+    el.innerHTML = '<p style="color:#ef4444;padding:20px;text-align:center">Chart rendering failed</p>';
+  }
 }
 
 /* ──────────────────────────────────────────────
