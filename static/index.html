@@ -1584,7 +1584,7 @@ function renderMetricChart() {
   const models = lb.rows.map(r => r[modelCol] || '');
   const values = lb.rows.map(r => parseFloat(r[metric]) || 0);
 
-  const colors = values.map((_, i) => i === 0 ? '#6366f1' : 'rgba(30,27,75,0.7)');
+  const colors = values.map((_, i) => i === 0 ? '#6366f1' : i === 1 ? '#818cf8' : i === 2 ? '#a78bfa' : 'rgba(99,102,241,0.35)');
 
   const figure = {
     data: [{
@@ -1592,7 +1592,7 @@ function renderMetricChart() {
       x: values,
       y: models,
       orientation: 'h',
-      marker: { color: colors, borderRadius: 4 },
+      marker: { color: colors, line: { width: 1, color: 'rgba(255,255,255,0.12)' } },
       text: values.map(v => v.toFixed(4)),
       textposition: 'outside',
       textfont: { family: 'Inter', size: 11, color: '#a1a1aa' }

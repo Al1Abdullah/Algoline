@@ -19,9 +19,16 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 # ── Global state (single-user free tier) ──
 S = {}
 
-COLORS = ["#10b981","#6366f1","#f59e0b","#ef4444","#8b5cf6",
-          "#06b6d4","#84cc16","#ec4899","#f97316","#14b8a6"]
+COLORS = ["#6366f1","#22d3ee","#f59e0b","#a78bfa","#f43f5e",
+          "#14b8a6","#e879f9","#3b82f6","#84cc16","#fb923c"]
 px.defaults.color_discrete_sequence = COLORS
+
+# Global Plotly template: bar outlines + dark theme defaults
+_tpl = go.layout.Template()
+_tpl.data.bar = [go.Bar(marker=dict(line=dict(width=1, color="rgba(255,255,255,0.15)")))]
+_tpl.data.histogram = [go.Histogram(marker=dict(line=dict(width=1, color="rgba(255,255,255,0.12)")))]
+go.layout.Template()
+px.defaults.template = _tpl
 
 
 # ────────────────────────────────────────────────────────────
@@ -219,7 +226,8 @@ def gen_all_plots(exp, model, task):
             y_pred = preds['prediction_label'] if 'prediction_label' in preds.columns else preds['Label']
             residuals = y_true - y_pred
             fig = go.Figure(data=go.Histogram(x=residuals, nbinsx=40,
-                marker_color='#6366f1', opacity=0.75))
+                marker_color='#6366f1', opacity=0.8,
+                marker_line=dict(width=1, color='rgba(255,255,255,0.15)')))
             fig.update_layout(title='Residual Distribution',
                 xaxis_title='Residual', yaxis_title='Count', height=380)
             plots.append({"label": "Residual Distribution", "figure": fig_json(fig)})
@@ -234,7 +242,8 @@ def gen_all_plots(exp, model, task):
             imp_df = pd.DataFrame({'Feature': feature_names, 'Importance': importances})
             imp_df = imp_df.sort_values('Importance', ascending=True).tail(15)
             fig = go.Figure(go.Bar(x=imp_df['Importance'], y=imp_df['Feature'],
-                orientation='h', marker_color='#6366f1'))
+                orientation='h', marker_color='#6366f1',
+                marker_line=dict(width=1, color='rgba(255,255,255,0.12)')))
             fig.update_layout(title='Feature Importance (Top 15)',
                 xaxis_title='Importance', height=max(350, len(imp_df)*28 + 80),
                 margin=dict(l=160))
@@ -248,7 +257,8 @@ def gen_all_plots(exp, model, task):
                 imp_df = imp_df.sort_values('AbsCoef', ascending=True).tail(15)
                 colors = ['#6366f1' if v >= 0 else '#ef4444' for v in imp_df['Coefficient']]
                 fig = go.Figure(go.Bar(x=imp_df['Coefficient'], y=imp_df['Feature'],
-                    orientation='h', marker_color=colors))
+                    orientation='h', marker_color=colors,
+                    marker_line=dict(width=1, color='rgba(255,255,255,0.12)')))
                 fig.update_layout(title='Feature Coefficients (Top 15)',
                     xaxis_title='Coefficient', height=max(350, len(imp_df)*28 + 80),
                     margin=dict(l=160))
@@ -346,7 +356,7 @@ def set_target(target: str = Form(...)):
 def explore_dist(feature: str = Form(...)):
     if "df" not in S: return JSONResponse({"error": "No data"}, 400)
     fig = px.histogram(S["df"], x=feature, nbins=40, marginal="box",
-                       color_discrete_sequence=["#10b981"])
+                       color_discrete_sequence=["#6366f1"])
     fig.update_layout(title=f"Distribution: {feature}", title_font_size=14)
     return {"figure": fig_json(fig)}
 
@@ -485,7 +495,7 @@ def explore_feature_target(feature: str = Form(...)):
         fig.update_layout(title=f"{feature} by {tgt}", title_font_size=14, showlegend=False)
     else:
         fig = px.scatter(sub, x=feature, y=tgt, trendline="ols",
-                         color_discrete_sequence=["#8b5cf6"], opacity=0.6)
+                         color_discrete_sequence=["#22d3ee"], opacity=0.6)
         fig.update_layout(title=f"{feature} vs {tgt}", title_font_size=14)
     return {"figure": fig_json(fig)}
 
@@ -518,7 +528,7 @@ def explore_kde(feature: str = Form(...)):
             # For categorical: show value counts as bar
             vc = s.astype(str).value_counts().head(20).reset_index()
             vc.columns = [feature, "Count"]
-            fig = px.bar(vc, x=feature, y="Count", color_discrete_sequence=["#10b981"])
+            fig = px.bar(vc, x=feature, y="Count", color_discrete_sequence=["#6366f1"])
             fig.update_layout(title=f"Value Distribution: {feature}", title_font_size=14)
             return {"figure": fig_json(fig)}
         from scipy import stats as _st
@@ -551,7 +561,7 @@ def explore_violin(feature: str = Form(...)):
             fig.update_layout(showlegend=False)
         else:
             fig = px.violin(sub, y=feature, box=True, points="outliers",
-                            color_discrete_sequence=["#8b5cf6"])
+                            color_discrete_sequence=["#22d3ee"])
         fig.update_layout(title=f"Violin: {feature}", title_font_size=14)
         return {"figure": fig_json(fig)}
     except Exception as e:
@@ -686,7 +696,7 @@ def explore_scatter_index(feature: str = Form(...)):
         sub = df[[feature]].dropna().reset_index(drop=True)
         if len(sub) > 3000: sub = sub.sample(3000, random_state=42).sort_index()
         fig = px.scatter(sub.reset_index(), x="index", y=feature,
-                         color_discrete_sequence=["#10b981"], opacity=0.5)
+                         color_discrete_sequence=["#6366f1"], opacity=0.5)
         fig.update_layout(title=f"{feature} vs Row Index", title_font_size=14,
                           xaxis_title="Row Index")
         return {"figure": fig_json(fig)}
@@ -729,7 +739,7 @@ def explore_mean_target(feature: str = Form(...)):
             else:
                 grp = sub.groupby(feature)[tgt].mean().sort_values(ascending=False).head(20).reset_index()
                 grp.columns = [feature, f"Mean {tgt}"]
-            fig = px.bar(grp, x=feature, y=f"Mean {tgt}", color_discrete_sequence=["#f59e0b"])
+            fig = px.bar(grp, x=feature, y=f"Mean {tgt}", color_discrete_sequence=["#a78bfa"])
             fig.update_layout(title=f"Mean {tgt} per {feature}", title_font_size=14,
                               xaxis_tickangle=-45)
         return {"figure": fig_json(fig)}
