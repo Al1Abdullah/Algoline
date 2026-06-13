@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AutoML Studio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+<style>
+/* ──────────────────────────────────────────────
+   RESET & BASE
+   ────────────────────────────────────────────── */
+*, *::before, *::after {
+  margin: 0; padding: 0; box-sizing: border-box;
+}
+html {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  color: #e4e4e7;
+  background: #06060a;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+body { overflow-x: hidden; }
+
+/* ──────────────────────────────────────────────
+   SCROLLBAR
+   ────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.14); }
+
+/* ──────────────────────────────────────────────
+   ANIMATIONS
+   ────────────────────────────────────────────── */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes cardIn {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* ──────────────────────────────────────────────
+   LAYOUT
+   ────────────────────────────────────────────── */
+.sidebar {
+  position: fixed; left: 0; top: 0; bottom: 0;
+  width: 220px; z-index: 100;
+  background: rgba(255,255,255,0.03);
+  border-right: 1px solid rgba(255,255,255,0.06);
+  display: flex; flex-direction: column;
+  padding: 28px 16px 20px;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+.main-content {
+  margin-left: 220px;
+  min-height: 100vh;
+  padding: 36px 40px 60px;
+}
+
+/* ──────────────────────────────────────────────
+   SIDEBAR
+   ────────────────────────────────────────────── */
+.sidebar-logo {
+  font-size: 18px; font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #fff;
+  padding: 0 8px 28px;
+  display: flex; align-items: center; gap: 10px;
+}
+.sidebar-logo svg { flex-shrink: 0; }
+.sidebar-nav { display: flex; flex-direction: column; gap: 4px; }
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px; border-radius: 10px;
+  font-size: 13.5px; font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+.nav-item:hover {
+  color: rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.04);
+}
+.nav-item.active {
+  color: #fff;
+  background: rgba(16,185,129,0.12);
+  border-color: rgba(16,185,129,0.18);
+  box-shadow: 0 0 20px rgba(16,185,129,0.08);
+}
+.nav-item.active svg { color: #10b981; }
+.nav-item svg {
+  width: 18px; height: 18px;
+  color: rgba(255,255,255,0.35);
+  transition: color 0.2s ease;
+  flex-shrink: 0;
+}
+
+/* ──────────────────────────────────────────────
+   SECTIONS
+   ────────────────────────────────────────────── */
+.section { display: none; }
+.section.active { display: block; animation: fadeIn 0.3s ease; }
+.section-title {
+  font-size: 22px; font-weight: 700;
+  letter-spacing: -0.03em;
+  color: #fff; margin-bottom: 4px;
+}
+.section-subtitle {
+  font-size: 13px; font-weight: 400;
+  color: rgba(255,255,255,0.4);
+  margin-bottom: 28px;
+}
+
+/* ──────────────────────────────────────────────
+   CARD (GLASSMORPHISM)
+   ────────────────────────────────────────────── */
+.card {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 14px;
+  padding: 24px;
+  transition: all 0.2s ease;
+  animation: cardIn 0.4s ease both;
+}
+.card + .card { margin-top: 20px; }
+.card-label {
+  font-size: 10px; font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: rgba(255,255,255,0.35);
+  margin-bottom: 6px;
+}
+.card-value {
+  font-size: 28px; font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+/* ──────────────────────────────────────────────
+   METRICS GRID
+   ────────────────────────────────────────────── */
+.metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.metrics-grid .card {
+  text-align: center; padding: 20px 14px;
+}
+.metrics-grid .card:nth-child(1) { animation-delay: 0.05s; }
+.metrics-grid .card:nth-child(2) { animation-delay: 0.1s; }
+.metrics-grid .card:nth-child(3) { animation-delay: 0.15s; }
+.metrics-grid .card:nth-child(4) { animation-delay: 0.2s; }
+
+/* ──────────────────────────────────────────────
+   UPLOAD AREA
+   ────────────────────────────────────────────── */
+.upload-area {
+  border: 2px dashed rgba(255,255,255,0.12);
+  border-radius: 14px;
+  padding: 48px 24px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: transparent;
+  margin-bottom: 24px;
+}
+.upload-area:hover, .upload-area.dragover {
+  border-color: #10b981;
+  background: rgba(16,185,129,0.04);
+}
+.upload-area svg {
+  width: 40px; height: 40px;
+  color: rgba(255,255,255,0.2);
+  margin-bottom: 14px;
+  transition: color 0.2s ease;
+}
+.upload-area:hover svg, .upload-area.dragover svg { color: #10b981; }
+.upload-area-title {
+  font-size: 14px; font-weight: 600; color: #fff;
+  margin-bottom: 4px;
+}
+.upload-area-sub {
+  font-size: 12px; color: rgba(255,255,255,0.35);
+}
+.upload-area input[type="file"] { display: none; }
+
+/* ──────────────────────────────────────────────
+   TABS
+   ────────────────────────────────────────────── */
+.tab-bar {
+  display: flex; gap: 4px;
+  padding: 4px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 10px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(255,255,255,0.06);
+  flex-wrap: wrap;
+}
+.tab-btn {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 12.5px; font-weight: 500;
+  color: rgba(255,255,255,0.45);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none; background: none;
+  white-space: nowrap;
+}
+.tab-btn:hover { color: rgba(255,255,255,0.7); }
+.tab-btn.active {
+  background: rgba(255,255,255,0.08);
+  color: #fff; font-weight: 600;
+}
+.tab-panel { display: none; }
+.tab-panel.active { display: block; animation: fadeIn 0.25s ease; }
+
+/* ──────────────────────────────────────────────
+   TABLE
+   ────────────────────────────────────────────── */
+.table-wrap {
+  overflow-x: auto; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+.data-table th {
+  padding: 10px 14px;
+  text-align: left;
+  font-weight: 600; font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.03);
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  position: sticky; top: 0;
+  white-space: nowrap;
+}
+.data-table td {
+  padding: 9px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  color: rgba(255,255,255,0.7);
+  white-space: nowrap;
+  max-width: 220px; overflow: hidden;
+  text-overflow: ellipsis;
+}
+.data-table tbody tr {
+  transition: background 0.15s ease;
+}
+.data-table tbody tr:hover {
+  background: rgba(255,255,255,0.03);
+}
+.data-table tbody tr:last-child td { border-bottom: none; }
+
+/* ──────────────────────────────────────────────
+   BUTTONS
+   ────────────────────────────────────────────── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 10px 22px; border-radius: 10px;
+  font-family: inherit; font-size: 13px; font-weight: 600;
+  cursor: pointer; border: none;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary {
+  background: #10b981; color: #fff;
+  box-shadow: 0 2px 8px rgba(16,185,129,0.2);
+}
+.btn-primary:hover {
+  background: #0ea472;
+  box-shadow: 0 4px 20px rgba(16,185,129,0.35);
+  transform: translateY(-1px);
+}
+.btn-primary:disabled {
+  opacity: 0.4; cursor: not-allowed;
+  transform: none; box-shadow: none;
+}
+.btn-secondary {
+  background: transparent;
+  color: rgba(255,255,255,0.7);
+  border: 1px solid rgba(255,255,255,0.12);
+}
+.btn-secondary:hover {
+  border-color: #10b981;
+  color: #10b981;
+  background: rgba(16,185,129,0.06);
+  transform: translateY(-1px);
+}
+.btn-sm { padding: 7px 14px; font-size: 12px; border-radius: 8px; }
+
+/* ──────────────────────────────────────────────
+   FORM ELEMENTS
+   ────────────────────────────────────────────── */
+.form-group { margin-bottom: 18px; }
+.form-label {
+  display: block; font-size: 12px; font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 6px;
+}
+.form-select, .form-input {
+  width: 100%; padding: 9px 12px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: #e4e4e7;
+  font-family: inherit; font-size: 13px;
+  transition: all 0.2s ease;
+  appearance: none;
+  outline: none;
+}
+.form-select:focus, .form-input:focus {
+  border-color: #10b981;
+  box-shadow: 0 0 0 3px rgba(16,185,129,0.12);
+}
+.form-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2371717a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 32px;
+}
+.form-select option { background: #18181b; color: #e4e4e7; }
+
+/* Range slider */
+.range-wrap { display: flex; align-items: center; gap: 12px; }
+.range-wrap input[type="range"] {
+  flex: 1; height: 4px;
+  -webkit-appearance: none; appearance: none;
+  background: rgba(255,255,255,0.1);
+  border-radius: 2px; outline: none;
+}
+.range-wrap input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: #10b981; cursor: pointer;
+  border: 2px solid #06060a;
+  transition: box-shadow 0.2s ease;
+}
+.range-wrap input[type="range"]::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 0 4px rgba(16,185,129,0.2);
+}
+.range-val {
+  font-size: 13px; font-weight: 600;
+  color: #fff; min-width: 32px;
+  text-align: right;
+}
+
+/* ──────────────────────────────────────────────
+   CHECKBOX GRID
+   ────────────────────────────────────────────── */
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+.checkbox-item {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 12.5px; font-weight: 500;
+  color: rgba(255,255,255,0.6);
+}
+.checkbox-item:hover {
+  border-color: rgba(255,255,255,0.12);
+  color: rgba(255,255,255,0.8);
+}
+.checkbox-item input[type="checkbox"] {
+  -webkit-appearance: none; appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 4px;
+  border: 1.5px solid rgba(255,255,255,0.2);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  position: relative;
+}
+.checkbox-item input[type="checkbox"]:checked {
+  background: #10b981;
+  border-color: #10b981;
+}
+.checkbox-item input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  left: 4px; top: 1px;
+  width: 5px; height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* ──────────────────────────────────────────────
+   TASK BADGE
+   ────────────────────────────────────────────── */
+.task-badge {
+  display: inline-flex; align-items: center;
+  padding: 4px 12px; border-radius: 20px;
+  font-size: 11.5px; font-weight: 600;
+  letter-spacing: 0.02em;
+  background: rgba(16,185,129,0.12);
+  color: #10b981;
+  border: 1px solid rgba(16,185,129,0.2);
+}
+
+/* ──────────────────────────────────────────────
+   RADIO GROUP
+   ────────────────────────────────────────────── */
+.radio-group { display: flex; gap: 8px; margin-bottom: 18px; }
+.radio-item {
+  padding: 9px 20px; border-radius: 8px;
+  font-size: 13px; font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  border: 1px solid rgba(255,255,255,0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.radio-item:hover { border-color: rgba(255,255,255,0.2); color: rgba(255,255,255,0.7); }
+.radio-item.active {
+  background: rgba(16,185,129,0.12);
+  border-color: rgba(16,185,129,0.3);
+  color: #10b981; font-weight: 600;
+}
+.radio-item input { display: none; }
+
+/* ──────────────────────────────────────────────
+   COLLAPSIBLE
+   ────────────────────────────────────────────── */
+.collapsible-header {
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; padding: 14px 0;
+  font-size: 13px; font-weight: 600; color: #fff;
+  user-select: none;
+}
+.collapsible-header svg {
+  width: 16px; height: 16px;
+  color: rgba(255,255,255,0.35);
+  transition: transform 0.2s ease;
+}
+.collapsible-header.open svg { transform: rotate(180deg); }
+.collapsible-body {
+  max-height: 0; overflow: hidden;
+  transition: max-height 0.3s ease, padding 0.3s ease;
+}
+.collapsible-body.open {
+  max-height: 600px;
+  padding-bottom: 16px;
+}
+
+/* ──────────────────────────────────────────────
+   LOADING OVERLAY
+   ────────────────────────────────────────────── */
+.loading-overlay {
+  position: absolute; inset: 0;
+  background: rgba(6,6,10,0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  border-radius: 14px;
+  z-index: 50;
+  gap: 16px;
+}
+.loading-overlay.hidden { display: none; }
+.spinner {
+  width: 36px; height: 36px;
+  border: 3px solid rgba(255,255,255,0.08);
+  border-top-color: #10b981;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.loading-text {
+  font-size: 13px; font-weight: 500;
+  color: rgba(255,255,255,0.5);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* ──────────────────────────────────────────────
+   PLOT GRID
+   ────────────────────────────────────────────── */
+.plot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+.plot-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.plot-card-title {
+  padding: 12px 16px 8px;
+  font-size: 12px; font-weight: 600;
+  color: rgba(255,255,255,0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.plot-card img {
+  width: 100%; display: block;
+  padding: 0 8px 8px;
+}
+
+/* ──────────────────────────────────────────────
+   DOWNLOAD ROW
+   ────────────────────────────────────────────── */
+.download-row {
+  display: flex; gap: 14px;
+  flex-wrap: wrap;
+}
+
+/* ──────────────────────────────────────────────
+   CHART CONTAINER
+   ────────────────────────────────────────────── */
+.chart-container {
+  width: 100%;
+  min-height: 380px;
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* ──────────────────────────────────────────────
+   INLINE FLEX HELPERS
+   ────────────────────────────────────────────── */
+.flex-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.flex-col { display: flex; flex-direction: column; }
+.gap-sm { gap: 8px; }
+.gap-md { gap: 14px; }
+.mt-sm { margin-top: 12px; }
+.mt-md { margin-top: 20px; }
+.mt-lg { margin-top: 32px; }
+.mb-md { margin-bottom: 20px; }
+.w-auto { width: auto; }
+.relative { position: relative; }
+
+/* ──────────────────────────────────────────────
+   TARGET ROW
+   ────────────────────────────────────────────── */
+.target-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 16px 0;
+}
+.target-row .form-select { width: 260px; }
+
+/* ──────────────────────────────────────────────
+   SUMMARY GRID
+   ────────────────────────────────────────────── */
+.summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-bottom: 24px;
+}
+
+/* ──────────────────────────────────────────────
+   RESPONSIVE
+   ────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .sidebar { width: 60px; padding: 20px 8px; }
+  .sidebar-logo span { display: none; }
+  .nav-item span { display: none; }
+  .nav-item { justify-content: center; padding: 10px; }
+  .main-content { margin-left: 60px; padding: 24px 16px; }
+  .metrics-grid { grid-template-columns: repeat(2, 1fr); }
+  .checkbox-grid { grid-template-columns: repeat(2, 1fr); }
+  .plot-grid { grid-template-columns: 1fr; }
+  .summary-grid { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════
+     SIDEBAR
+     ════════════════════════════════════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
+    </svg>
+    <span>AutoML Studio</span>
+  </div>
+  <div class="sidebar-nav">
+    <a class="nav-item active" onclick="showSection('data')" data-section="data">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+      </svg>
+      <span>Data</span>
+    </a>
+    <a class="nav-item" onclick="showSection('explore')" data-section="explore">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+      </svg>
+      <span>Explore</span>
+    </a>
+    <a class="nav-item" onclick="showSection('build')" data-section="build">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+      <span>Build</span>
+    </a>
+    <a class="nav-item" onclick="showSection('export')" data-section="export">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/>
+      </svg>
+      <span>Export</span>
+    </a>
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════
+     MAIN CONTENT
+     ════════════════════════════════════════════ -->
+<div class="main-content">
+
+  <!-- ──────── DATA SECTION ──────── -->
+  <div id="sec-data" class="section active">
+    <h1 class="section-title">Data</h1>
+    <p class="section-subtitle">Upload a dataset to begin your machine learning pipeline</p>
+
+    <!-- Upload Area -->
+    <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      <div class="upload-area-title">Drop your dataset here or click to browse</div>
+      <div class="upload-area-sub">Supports CSV, TSV, XLSX</div>
+      <input type="file" id="file-input" accept=".csv,.tsv,.xlsx,.xls">
+    </div>
+
+    <!-- Metrics (hidden initially) -->
+    <div id="data-metrics" class="metrics-grid" style="display:none"></div>
+
+    <!-- Target Selection -->
+    <div id="target-section" style="display:none">
+      <div class="card">
+        <div class="target-row">
+          <div class="form-group" style="margin:0">
+            <label class="form-label">Target Column</label>
+            <select class="form-select" id="target-select" onchange="setTarget(this.value)">
+              <option value="">Select target...</option>
+            </select>
+          </div>
+          <div id="task-badge-wrap"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Data Tabs -->
+    <div id="data-tabs-section" class="mt-md" style="display:none">
+      <div class="card">
+        <div class="tab-bar" id="data-tab-bar">
+          <button class="tab-btn active" onclick="switchDataTab('preview')">Preview</button>
+          <button class="tab-btn" onclick="switchDataTab('types')">Types</button>
+          <button class="tab-btn" onclick="switchDataTab('stats')">Stats</button>
+        </div>
+        <div id="data-tab-preview" class="tab-panel active">
+          <div class="table-wrap" style="max-height:400px;overflow-y:auto" id="preview-table"></div>
+        </div>
+        <div id="data-tab-types" class="tab-panel">
+          <div class="table-wrap" style="max-height:400px;overflow-y:auto" id="types-table"></div>
+        </div>
+        <div id="data-tab-stats" class="tab-panel">
+          <div class="table-wrap" style="max-height:400px;overflow-y:auto" id="stats-table"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────── EXPLORE SECTION ──────── -->
+  <div id="sec-explore" class="section">
+    <h1 class="section-title">Explore</h1>
+    <p class="section-subtitle">Visualize features, distributions, correlations, and data quality</p>
+
+    <div class="card">
+      <div class="tab-bar" id="explore-tab-bar">
+        <button class="tab-btn active" onclick="switchExploreTab('distribution')">Distribution</button>
+        <button class="tab-btn" onclick="switchExploreTab('correlation')">Correlation</button>
+        <button class="tab-btn" onclick="switchExploreTab('boxplot')">Boxplot</button>
+        <button class="tab-btn" onclick="switchExploreTab('scatter')">Scatter Matrix</button>
+        <button class="tab-btn" onclick="switchExploreTab('quality')">Quality</button>
+      </div>
+
+      <!-- Distribution -->
+      <div id="explore-tab-distribution" class="tab-panel active">
+        <div class="flex-row mb-md">
+          <div class="form-group" style="margin:0;min-width:200px">
+            <label class="form-label">Feature</label>
+            <select class="form-select" id="dist-feature" onchange="loadDistribution()">
+              <option value="">Select feature...</option>
+            </select>
+          </div>
+        </div>
+        <div class="chart-container" id="dist-chart"></div>
+      </div>
+
+      <!-- Correlation -->
+      <div id="explore-tab-correlation" class="tab-panel">
+        <div class="chart-container" id="corr-chart"></div>
+      </div>
+
+      <!-- Boxplot -->
+      <div id="explore-tab-boxplot" class="tab-panel">
+        <div class="flex-row mb-md">
+          <div class="form-group" style="margin:0;min-width:200px">
+            <label class="form-label">Feature</label>
+            <select class="form-select" id="box-feature" onchange="loadBoxplot()">
+              <option value="">Select feature...</option>
+            </select>
+          </div>
+        </div>
+        <div class="chart-container" id="box-chart"></div>
+      </div>
+
+      <!-- Scatter Matrix -->
+      <div id="explore-tab-scatter" class="tab-panel">
+        <div class="chart-container" id="scatter-chart" style="min-height:500px"></div>
+      </div>
+
+      <!-- Quality -->
+      <div id="explore-tab-quality" class="tab-panel">
+        <div class="table-wrap" id="quality-table"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────── BUILD SECTION ──────── -->
+  <div id="sec-build" class="section">
+    <h1 class="section-title">Build</h1>
+    <p class="section-subtitle">Configure preprocessing, train models, tune the best, and evaluate results</p>
+
+    <!-- Configuration Card -->
+    <div class="card relative" id="build-config-card">
+      <!-- Task -->
+      <div class="form-group">
+        <label class="form-label">Task Type</label>
+        <div class="radio-group" id="task-radio-group">
+          <label class="radio-item active" onclick="selectTask(this,'classification')">
+            <input type="radio" name="task" value="classification" checked>
+            Classification
+          </label>
+          <label class="radio-item" onclick="selectTask(this,'regression')">
+            <input type="radio" name="task" value="regression">
+            Regression
+          </label>
+        </div>
+      </div>
+
+      <!-- Collapsible Preprocessing -->
+      <div>
+        <div class="collapsible-header open" onclick="toggleCollapsible(this)">
+          <span>Preprocessing Options</span>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+        </div>
+        <div class="collapsible-body open">
+          <div class="checkbox-grid">
+            <label class="checkbox-item"><input type="checkbox" name="prep" value="drop_duplicates" checked> Drop Duplicates</label>
+            <label class="checkbox-item"><input type="checkbox" name="prep" value="remove_outliers"> Remove Outliers</label>
+            <label class="checkbox-item"><input type="checkbox" name="prep" value="normalize" checked> Normalize</label>
+            <label class="checkbox-item"><input type="checkbox" name="prep" value="drop_multicollinear" checked> Drop Multicollinear</label>
+            <label class="checkbox-item"><input type="checkbox" name="prep" value="transform_skew"> Transform Skew</label>
+            <label class="checkbox-item"><input type="checkbox" name="prep" value="feature_selection"> Feature Selection</label>
+            <label class="checkbox-item"><input type="checkbox" name="prep" value="polynomial_features"> Polynomial Features</label>
+            <label class="checkbox-item"><input type="checkbox" name="prep" value="fix_imbalance"> Fix Class Imbalance</label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sliders -->
+      <div class="flex-row mt-md" style="gap:32px">
+        <div class="form-group" style="flex:1;margin:0">
+          <label class="form-label">Test Size</label>
+          <div class="range-wrap">
+            <input type="range" id="test-size" min="0.1" max="0.4" step="0.05" value="0.2" oninput="document.getElementById('test-size-val').textContent=this.value">
+            <span class="range-val" id="test-size-val">0.2</span>
+          </div>
+        </div>
+        <div class="form-group" style="flex:1;margin:0">
+          <label class="form-label">CV Folds</label>
+          <div class="range-wrap">
+            <input type="range" id="cv-folds" min="2" max="10" step="1" value="5" oninput="document.getElementById('cv-folds-val').textContent=this.value">
+            <span class="range-val" id="cv-folds-val">5</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Train Button -->
+      <div class="mt-md">
+        <button class="btn btn-primary" id="train-btn" onclick="trainModels()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Train All Models
+        </button>
+      </div>
+
+      <!-- Loading Overlay -->
+      <div class="loading-overlay hidden" id="train-loading">
+        <div class="spinner"></div>
+        <div class="loading-text" id="train-status">Initializing pipeline...</div>
+      </div>
+    </div>
+
+    <!-- Results (hidden until training completes) -->
+    <div id="build-results" style="display:none">
+
+      <!-- Best Model -->
+      <div class="card mt-md" id="best-model-card">
+        <div class="card-label">Best Model</div>
+        <div class="card-value" id="best-model-name">--</div>
+      </div>
+
+      <!-- Leaderboard -->
+      <div class="card mt-md">
+        <div class="card-label">Leaderboard</div>
+        <div class="table-wrap mt-sm" style="max-height:360px;overflow-y:auto" id="leaderboard-table"></div>
+      </div>
+
+      <!-- Metric Comparison -->
+      <div class="card mt-md">
+        <div class="flex-row mb-md">
+          <div class="form-group" style="margin:0;min-width:200px">
+            <label class="form-label">Compare Metric</label>
+            <select class="form-select" id="metric-select" onchange="renderMetricChart()"></select>
+          </div>
+        </div>
+        <div class="chart-container" id="metric-chart"></div>
+      </div>
+
+      <!-- Tuning -->
+      <div class="card mt-md relative" id="tune-card">
+        <div class="card-label">Hyperparameter Tuning</div>
+        <div class="flex-row mt-sm" style="gap:16px;align-items:flex-end">
+          <div class="form-group" style="margin:0;min-width:160px">
+            <label class="form-label">Method</label>
+            <select class="form-select" id="tune-method">
+              <option value="random">Random Search</option>
+              <option value="optuna">Optuna (Bayesian)</option>
+              <option value="grid">Grid Search</option>
+            </select>
+          </div>
+          <div class="form-group" style="margin:0;min-width:180px">
+            <label class="form-label">Iterations</label>
+            <div class="range-wrap">
+              <input type="range" id="tune-iter" min="5" max="50" step="5" value="10" oninput="document.getElementById('tune-iter-val').textContent=this.value">
+              <span class="range-val" id="tune-iter-val">10</span>
+            </div>
+          </div>
+          <button class="btn btn-secondary btn-sm" id="tune-btn" onclick="tuneModel()">Tune</button>
+        </div>
+        <div id="tune-results" class="mt-md" style="display:none">
+          <div id="tune-improved" class="mb-md" style="font-size:13px;font-weight:500"></div>
+          <div class="table-wrap" style="max-height:300px;overflow-y:auto" id="tune-table"></div>
+        </div>
+        <div class="loading-overlay hidden" id="tune-loading">
+          <div class="spinner"></div>
+          <div class="loading-text">Tuning hyperparameters...</div>
+        </div>
+      </div>
+
+      <!-- Evaluation Plots -->
+      <div class="card mt-md">
+        <div class="card-label">Evaluation Plots</div>
+        <div class="plot-grid mt-sm" id="eval-plots"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────── EXPORT SECTION ──────── -->
+  <div id="sec-export" class="section">
+    <h1 class="section-title">Export</h1>
+    <p class="section-subtitle">Download your trained pipeline, results, and predictions</p>
+
+    <div class="card" id="export-summary-card">
+      <div class="card-label">Pipeline Summary</div>
+      <div class="summary-grid mt-sm" id="export-summary">
+        <div class="card" style="padding:16px">
+          <div class="card-label">Model</div>
+          <div style="font-size:16px;font-weight:700;color:#fff" id="export-model">--</div>
+        </div>
+        <div class="card" style="padding:16px">
+          <div class="card-label">Task</div>
+          <div style="font-size:16px;font-weight:700;color:#fff" id="export-task">--</div>
+        </div>
+        <div class="card" style="padding:16px">
+          <div class="card-label">Predictions</div>
+          <div style="font-size:16px;font-weight:700;color:#fff" id="export-preds">--</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card mt-md">
+      <div class="card-label">Downloads</div>
+      <div class="download-row mt-sm">
+        <button class="btn btn-secondary" onclick="downloadExport('pipeline')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Pipeline (.pkl)
+        </button>
+        <button class="btn btn-secondary" onclick="downloadExport('leaderboard')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Leaderboard (.csv)
+        </button>
+        <button class="btn btn-secondary" onclick="downloadExport('predictions')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
+          Predictions (.csv)
+        </button>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ════════════════════════════════════════════
+     JAVASCRIPT
+     ════════════════════════════════════════════ -->
+<script>
+/* ──────────────────────────────────────────────
+   APPLICATION STATE
+   ────────────────────────────────────────────── */
+window.APP = {
+  columns: [],
+  numericColumns: [],
+  target: '',
+  task: '',
+  leaderboard: null,
+  metrics: [],
+  bestModel: '',
+  nPredictions: 0
+};
+
+/* ──────────────────────────────────────────────
+   NAVIGATION
+   ────────────────────────────────────────────── */
+function showSection(name) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const sec = document.getElementById('sec-' + name);
+  if (sec) sec.classList.add('active');
+  const nav = document.querySelector('.nav-item[data-section="' + name + '"]');
+  if (nav) nav.classList.add('active');
+}
+
+/* ──────────────────────────────────────────────
+   TABLE RENDERER
+   ────────────────────────────────────────────── */
+function renderTable(containerId, rows, columns) {
+  const el = document.getElementById(containerId);
+  if (!el || !rows || !columns) { if (el) el.innerHTML = ''; return; }
+  let html = '<table class="data-table"><thead><tr>';
+  columns.forEach(c => { html += '<th>' + escHtml(String(c)) + '</th>'; });
+  html += '</tr></thead><tbody>';
+  rows.forEach(r => {
+    html += '<tr>';
+    columns.forEach(c => {
+      const val = r[c] !== undefined && r[c] !== null ? String(r[c]) : '';
+      html += '<td>' + escHtml(val) + '</td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+  el.innerHTML = html;
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+/* ──────────────────────────────────────────────
+   PLOTLY HELPER
+   ────────────────────────────────────────────── */
+function renderPlotly(divId, figure) {
+  if (!figure || !figure.data) return;
+  const layout = Object.assign({}, figure.layout || {}, {
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: { family: 'Inter, sans-serif', size: 12, color: '#71717a' },
+    margin: figure.layout && figure.layout.margin ? figure.layout.margin : { l: 40, r: 20, t: 40, b: 40 }
+  });
+  layout.xaxis = Object.assign({}, layout.xaxis || {}, { gridcolor: 'rgba(128,128,128,0.08)', zeroline: false });
+  layout.yaxis = Object.assign({}, layout.yaxis || {}, { gridcolor: 'rgba(128,128,128,0.08)', zeroline: false });
+  Plotly.newPlot(divId, figure.data, layout, { responsive: true, displayModeBar: false });
+}
+
+/* ──────────────────────────────────────────────
+   FETCH WRAPPER
+   ────────────────────────────────────────────── */
+async function apiFetch(url, options) {
+  try {
+    const res = await fetch(url, options);
+    if (!res.ok) {
+      let msg = 'Request failed';
+      try { const e = await res.json(); msg = e.detail || e.message || msg; } catch (_) {}
+      throw new Error(msg);
+    }
+    return res;
+  } catch (err) {
+    console.error('API Error:', url, err);
+    throw err;
+  }
+}
+
+async function apiJson(url, options) {
+  const res = await apiFetch(url, options);
+  return res.json();
+}
+
+/* ──────────────────────────────────────────────
+   FILE UPLOAD & DRAG-DROP
+   ────────────────────────────────────────────── */
+(function initUpload() {
+  const area = document.getElementById('upload-area');
+  const input = document.getElementById('file-input');
+
+  area.addEventListener('dragover', e => {
+    e.preventDefault(); e.stopPropagation();
+    area.classList.add('dragover');
+  });
+  area.addEventListener('dragleave', e => {
+    e.preventDefault(); e.stopPropagation();
+    area.classList.remove('dragover');
+  });
+  area.addEventListener('drop', e => {
+    e.preventDefault(); e.stopPropagation();
+    area.classList.remove('dragover');
+    if (e.dataTransfer.files.length) {
+      input.files = e.dataTransfer.files;
+      uploadFile(e.dataTransfer.files[0]);
+    }
+  });
+  input.addEventListener('change', () => {
+    if (input.files.length) uploadFile(input.files[0]);
+  });
+})();
+
+async function uploadFile(file) {
+  const area = document.getElementById('upload-area');
+  area.innerHTML = `
+    <div class="spinner" style="margin:0 auto 12px"></div>
+    <div class="upload-area-title">Uploading ${escHtml(file.name)}...</div>
+    <div class="upload-area-sub">Please wait</div>
+  `;
+
+  try {
+    const fd = new FormData();
+    fd.append('file', file);
+    const data = await apiJson('/api/upload', { method: 'POST', body: fd });
+
+    // Update state
+    APP.columns = data.columns || [];
+    APP.numericColumns = data.numeric_columns || [];
+
+    // Show success in upload area
+    area.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="#10b981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px;margin-bottom:10px">
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <div class="upload-area-title" style="color:#10b981">${escHtml(file.name)} uploaded</div>
+      <div class="upload-area-sub">${data.rows || 0} rows, ${data.columns ? data.columns.length : 0} columns</div>
+    `;
+    area.onclick = null;
+
+    // Show metrics
+    renderMetrics(data);
+
+    // Populate target select
+    populateTargetSelect(data.columns || []);
+
+    // Populate preview / types / stats
+    if (data.preview) {
+      renderTable('preview-table', data.preview.rows, data.preview.columns);
+    }
+    if (data.types) {
+      renderTable('types-table', data.types.rows, data.types.columns);
+    }
+    if (data.stats) {
+      renderTable('stats-table', data.stats.rows, data.stats.columns);
+    }
+
+    document.getElementById('data-metrics').style.display = '';
+    document.getElementById('target-section').style.display = '';
+    document.getElementById('data-tabs-section').style.display = '';
+
+    // Populate explore dropdowns
+    populateExploreDropdowns();
+
+  } catch (err) {
+    area.innerHTML = `
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:36px;height:36px;margin-bottom:10px">
+        <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+      </svg>
+      <div class="upload-area-title" style="color:#ef4444">Upload failed</div>
+      <div class="upload-area-sub">${escHtml(err.message)}</div>
+    `;
+    area.onclick = () => document.getElementById('file-input').click();
+  }
+}
+
+function renderMetrics(data) {
+  const grid = document.getElementById('data-metrics');
+  const items = [
+    { label: 'Rows', value: (data.rows || 0).toLocaleString() },
+    { label: 'Columns', value: data.columns ? data.columns.length : 0 },
+    { label: 'Missing', value: (data.missing || 0).toLocaleString() },
+    { label: 'Duplicates', value: (data.duplicates || 0).toLocaleString() }
+  ];
+  grid.innerHTML = items.map(m => `
+    <div class="card">
+      <div class="card-label">${m.label}</div>
+      <div class="card-value">${m.value}</div>
+    </div>
+  `).join('');
+}
+
+function populateTargetSelect(cols) {
+  const sel = document.getElementById('target-select');
+  sel.innerHTML = '<option value="">Select target...</option>';
+  cols.forEach(c => {
+    sel.innerHTML += '<option value="' + escHtml(c) + '">' + escHtml(c) + '</option>';
+  });
+}
+
+async function setTarget(col) {
+  if (!col) { document.getElementById('task-badge-wrap').innerHTML = ''; return; }
+  try {
+    const fd = new FormData();
+    fd.append('target', col);
+    const data = await apiJson('/api/target', { method: 'POST', body: fd });
+    APP.target = col;
+    APP.task = data.task || 'Classification';
+    document.getElementById('task-badge-wrap').innerHTML =
+      '<span class="task-badge">' + escHtml(APP.task) + '</span>';
+
+    // Sync build section radio
+    if (APP.task.toLowerCase() === 'regression') {
+      selectTaskByValue('regression');
+    } else {
+      selectTaskByValue('classification');
+    }
+  } catch (err) {
+    document.getElementById('task-badge-wrap').innerHTML =
+      '<span class="task-badge" style="color:#ef4444;border-color:rgba(239,68,68,0.2);background:rgba(239,68,68,0.1)">Error</span>';
+  }
+}
+
+/* ──────────────────────────────────────────────
+   DATA TABS
+   ────────────────────────────────────────────── */
+function switchDataTab(tab) {
+  document.querySelectorAll('#data-tab-bar .tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#data-tabs-section .tab-panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('data-tab-' + tab).classList.add('active');
+}
+
+/* ──────────────────────────────────────────────
+   EXPLORE SECTION
+   ────────────────────────────────────────────── */
+function populateExploreDropdowns() {
+  const cols = APP.columns;
+  const numCols = APP.numericColumns.length ? APP.numericColumns : cols;
+  ['dist-feature', 'box-feature'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">Select feature...</option>';
+    cols.forEach(c => {
+      sel.innerHTML += '<option value="' + escHtml(c) + '">' + escHtml(c) + '</option>';
+    });
+  });
+}
+
+function switchExploreTab(tab) {
+  document.querySelectorAll('#explore-tab-bar .tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('#sec-explore .tab-panel').forEach(p => p.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('explore-tab-' + tab).classList.add('active');
+
+  // Auto-load correlation / scatter / quality
+  if (tab === 'correlation') loadCorrelation();
+  if (tab === 'scatter') loadScatter();
+  if (tab === 'quality') loadQuality();
+}
+
+async function loadDistribution() {
+  const feature = document.getElementById('dist-feature').value;
+  if (!feature) return;
+  try {
+    const fd = new FormData(); fd.append('feature', feature);
+    const data = await apiJson('/api/explore/distribution', { method: 'POST', body: fd });
+    if (data.figure) renderPlotly('dist-chart', data.figure);
+  } catch (err) {
+    document.getElementById('dist-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
+  }
+}
+
+async function loadCorrelation() {
+  try {
+    const data = await apiJson('/api/explore/correlation', { method: 'POST' });
+    if (data.figure) renderPlotly('corr-chart', data.figure);
+  } catch (err) {
+    document.getElementById('corr-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
+  }
+}
+
+async function loadBoxplot() {
+  const feature = document.getElementById('box-feature').value;
+  if (!feature) return;
+  try {
+    const fd = new FormData(); fd.append('feature', feature);
+    const data = await apiJson('/api/explore/boxplot', { method: 'POST', body: fd });
+    if (data.figure) renderPlotly('box-chart', data.figure);
+  } catch (err) {
+    document.getElementById('box-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
+  }
+}
+
+async function loadScatter() {
+  try {
+    const data = await apiJson('/api/explore/scatter', { method: 'POST' });
+    if (data.figure) renderPlotly('scatter-chart', data.figure);
+  } catch (err) {
+    document.getElementById('scatter-chart').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
+  }
+}
+
+async function loadQuality() {
+  try {
+    const data = await apiJson('/api/explore/quality', { method: 'POST' });
+    if (data.rows && data.rows.length) {
+      const cols = Object.keys(data.rows[0]);
+      renderTable('quality-table', data.rows, cols);
+    }
+  } catch (err) {
+    document.getElementById('quality-table').innerHTML = '<p style="color:#ef4444;padding:20px">' + escHtml(err.message) + '</p>';
+  }
+}
+
+/* ──────────────────────────────────────────────
+   BUILD SECTION
+   ────────────────────────────────────────────── */
+function selectTask(el, value) {
+  document.querySelectorAll('#task-radio-group .radio-item').forEach(r => r.classList.remove('active'));
+  el.classList.add('active');
+  el.querySelector('input').checked = true;
+  APP.task = value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function selectTaskByValue(value) {
+  const items = document.querySelectorAll('#task-radio-group .radio-item');
+  items.forEach(item => {
+    const input = item.querySelector('input');
+    if (input.value === value) {
+      item.classList.add('active');
+      input.checked = true;
+    } else {
+      item.classList.remove('active');
+    }
+  });
+}
+
+function toggleCollapsible(header) {
+  header.classList.toggle('open');
+  header.nextElementSibling.classList.toggle('open');
+}
+
+async function trainModels() {
+  const btn = document.getElementById('train-btn');
+  const loading = document.getElementById('train-loading');
+  const statusEl = document.getElementById('train-status');
+
+  btn.disabled = true;
+  loading.classList.remove('hidden');
+  statusEl.textContent = 'Initializing pipeline...';
+  document.getElementById('build-results').style.display = 'none';
+
+  const fd = new FormData();
+  const task = document.querySelector('input[name="task"]:checked').value;
+  fd.append('task', task);
+  fd.append('test_size', document.getElementById('test-size').value);
+  fd.append('cv_folds', document.getElementById('cv-folds').value);
+
+  // Preprocessing options
+  document.querySelectorAll('input[name="prep"]').forEach(cb => {
+    fd.append(cb.value, cb.checked ? 'true' : 'false');
+  });
+
+  // Progress simulation
+  const phases = [
+    'Preprocessing data...',
+    'Setting up experiment...',
+    'Comparing models...',
+    'Evaluating best model...',
+    'Generating plots...'
+  ];
+  let pi = 0;
+  const progressTimer = setInterval(() => {
+    if (pi < phases.length) { statusEl.textContent = phases[pi++]; }
+  }, 4000);
+
+  try {
+    const data = await apiJson('/api/train', { method: 'POST', body: fd });
+
+    clearInterval(progressTimer);
+    loading.classList.add('hidden');
+    btn.disabled = false;
+
+    // Store state
+    APP.bestModel = data.model_name || '--';
+    APP.leaderboard = data.leaderboard || null;
+    APP.metrics = data.metrics || [];
+    APP.nPredictions = data.n_predictions || 0;
+
+    // Show results
+    document.getElementById('build-results').style.display = '';
+    document.getElementById('best-model-name').textContent = APP.bestModel;
+
+    // Leaderboard
+    if (data.leaderboard) {
+      renderTable('leaderboard-table', data.leaderboard.rows, data.leaderboard.columns);
+    }
+
+    // Metric dropdown
+    const metricSel = document.getElementById('metric-select');
+    metricSel.innerHTML = '';
+    (data.metrics || []).forEach(m => {
+      metricSel.innerHTML += '<option value="' + escHtml(m) + '">' + escHtml(m) + '</option>';
+    });
+    renderMetricChart();
+
+    // Eval plots
+    renderEvalPlots(data.plots || []);
+
+    // Update export
+    document.getElementById('export-model').textContent = APP.bestModel;
+    document.getElementById('export-task').textContent = APP.task || task;
+    document.getElementById('export-preds').textContent = APP.nPredictions.toLocaleString();
+
+  } catch (err) {
+    clearInterval(progressTimer);
+    loading.classList.add('hidden');
+    btn.disabled = false;
+    statusEl.textContent = 'Training failed: ' + err.message;
+    setTimeout(() => loading.classList.add('hidden'), 2000);
+    alert('Training failed: ' + err.message);
+  }
+}
+
+function renderMetricChart() {
+  if (!APP.leaderboard) return;
+  const metric = document.getElementById('metric-select').value;
+  if (!metric) return;
+
+  const lb = APP.leaderboard;
+  const modelCol = lb.columns.find(c => c.toLowerCase() === 'model') || lb.columns[0];
+  const metricIdx = lb.columns.indexOf(metric);
+  if (metricIdx === -1) return;
+
+  const models = lb.rows.map(r => r[modelCol] || '');
+  const values = lb.rows.map(r => parseFloat(r[metric]) || 0);
+
+  const colors = values.map((_, i) => i === 0 ? '#10b981' : 'rgba(99,102,241,0.7)');
+
+  const figure = {
+    data: [{
+      type: 'bar',
+      x: values,
+      y: models,
+      orientation: 'h',
+      marker: { color: colors, borderRadius: 4 },
+      text: values.map(v => v.toFixed(4)),
+      textposition: 'outside',
+      textfont: { family: 'Inter', size: 11, color: '#a1a1aa' }
+    }],
+    layout: {
+      yaxis: { autorange: 'reversed', tickfont: { size: 11 } },
+      xaxis: { title: metric },
+      margin: { l: 160, r: 60, t: 20, b: 40 },
+      height: Math.max(300, models.length * 36 + 80)
+    }
+  };
+  renderPlotly('metric-chart', figure);
+}
+
+function renderEvalPlots(plots) {
+  const container = document.getElementById('eval-plots');
+  if (!plots || !plots.length) {
+    container.innerHTML = '<p style="color:rgba(255,255,255,0.3);font-size:13px">No evaluation plots available</p>';
+    return;
+  }
+  container.innerHTML = plots.map(p => `
+    <div class="plot-card">
+      <div class="plot-card-title">${escHtml(p.label || 'Plot')}</div>
+      <img src="data:image/png;base64,${p.image}" alt="${escHtml(p.label || 'Plot')}" loading="lazy">
+    </div>
+  `).join('');
+}
+
+/* ──────────────────────────────────────────────
+   TUNING
+   ────────────────────────────────────────────── */
+async function tuneModel() {
+  const btn = document.getElementById('tune-btn');
+  const loading = document.getElementById('tune-loading');
+
+  btn.disabled = true;
+  loading.classList.remove('hidden');
+  document.getElementById('tune-results').style.display = 'none';
+
+  const fd = new FormData();
+  fd.append('method', document.getElementById('tune-method').value);
+  fd.append('iterations', document.getElementById('tune-iter').value);
+
+  try {
+    const data = await apiJson('/api/tune', { method: 'POST', body: fd });
+
+    loading.classList.add('hidden');
+    btn.disabled = false;
+
+    document.getElementById('tune-results').style.display = '';
+
+    const improvedEl = document.getElementById('tune-improved');
+    if (data.improved) {
+      improvedEl.innerHTML = '<span style="color:#10b981">Model improved after tuning: ' + escHtml(data.model_name || '') + '</span>';
+      APP.bestModel = data.model_name || APP.bestModel;
+      document.getElementById('best-model-name').textContent = APP.bestModel;
+      document.getElementById('export-model').textContent = APP.bestModel;
+    } else {
+      improvedEl.innerHTML = '<span style="color:#f59e0b">No improvement found. Keeping original model.</span>';
+    }
+
+    if (data.tune_results) {
+      renderTable('tune-table', data.tune_results.rows, data.tune_results.columns);
+    }
+
+    // Update eval plots if provided
+    if (data.plots && data.plots.length) {
+      renderEvalPlots(data.plots);
+    }
+
+  } catch (err) {
+    loading.classList.add('hidden');
+    btn.disabled = false;
+    alert('Tuning failed: ' + err.message);
+  }
+}
+
+/* ──────────────────────────────────────────────
+   EXPORT
+   ────────────────────────────────────────────── */
+function downloadExport(type) {
+  const url = '/api/export/' + type;
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = '';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+
+/* ──────────────────────────────────────────────
+   INIT
+   ────────────────────────────────────────────── */
+showSection('data');
+</script>
+</body>
+</html>

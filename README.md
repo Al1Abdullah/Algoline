@@ -3,15 +3,15 @@ title: AutoML Studio
 emoji: ⚡
 colorFrom: green
 colorTo: blue
-sdk: gradio
-sdk_version: "5.29.0"
-app_file: main.py
-python_version: "3.10"
+sdk: docker
+app_port: 7860
 pinned: false
 ---
 
 # AutoML Studio
 
-End-to-end machine learning pipeline. Upload a dataset, explore it, build and compare models, tune hyperparameters, evaluate with SHAP interpretability, and export the trained pipeline.
+Production-grade end-to-end machine learning pipeline.
 
-**Stack:** Gradio, PyCaret, SHAP, Optuna, Plotly
+Upload a dataset, explore it visually, build and compare models automatically, tune hyperparameters with Optuna, evaluate with SHAP interpretability, and export the trained pipeline.
+
+**Stack:** FastAPI, PyCaret, SHAP, Optuna, Plotly.js

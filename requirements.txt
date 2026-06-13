@@ -1,3 +1,6 @@
+fastapi
+uvicorn[standard]
+python-multipart
 pycaret==3.3.2
 shap>=0.44.0
 optuna>=3.5.0
