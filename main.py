@@ -90,18 +90,36 @@ def grab_img(fn):
     return f"data:image/png;base64,{b64}"
 
 def grab_plot(exp, model, ptype):
-    before = set(glob.glob("*.png"))
-    try: exp.plot_model(model, plot=ptype, save=True)
-    except Exception: return None
-    new = set(glob.glob("*.png")) - before
-    return grab_img(max(new, key=os.path.getmtime)) if new else None
+    """Generate a PyCaret plot and return as base64 data URI."""
+    plot_dir = tempfile.mkdtemp()
+    old_cwd = os.getcwd()
+    try:
+        os.chdir(plot_dir)
+        exp.plot_model(model, plot=ptype, save=True)
+        pngs = glob.glob(os.path.join(plot_dir, "*.png"))
+        if pngs:
+            return grab_img(max(pngs, key=os.path.getmtime))
+        return None
+    except Exception:
+        return None
+    finally:
+        os.chdir(old_cwd)
 
 def grab_shap(exp, model, ptype="summary"):
-    before = set(glob.glob("*.png"))
-    try: exp.interpret_model(model, plot=ptype, save=True)
-    except Exception: return None
-    new = set(glob.glob("*.png")) - before
-    return grab_img(max(new, key=os.path.getmtime)) if new else None
+    """Generate a SHAP plot and return as base64 data URI."""
+    plot_dir = tempfile.mkdtemp()
+    old_cwd = os.getcwd()
+    try:
+        os.chdir(plot_dir)
+        exp.interpret_model(model, plot=ptype, save=True)
+        pngs = glob.glob(os.path.join(plot_dir, "*.png"))
+        if pngs:
+            return grab_img(max(pngs, key=os.path.getmtime))
+        return None
+    except Exception:
+        return None
+    finally:
+        os.chdir(old_cwd)
 
 def gen_all_plots(exp, model, task):
     plots = []
