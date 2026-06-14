@@ -1,0 +1,66 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-and-validate:
+    name: Lint and Validate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Validate imports
+        run: python -c "from main import app; print('Server module OK')"
+
+      - name: Check API routes
+        run: |
+          python -c "
+          from main import app
+          routes = [r.path for r in app.routes]
+          assert '/api/upload' in routes, 'Missing /api/upload'
+          assert '/api/train' in routes, 'Missing /api/train'
+          assert '/api/tune' in routes, 'Missing /api/tune'
+          assert '/api/export/pipeline' in routes, 'Missing /api/export/pipeline'
+          print(f'All {len(routes)} routes validated')
+          "
+
+  docker:
+    name: Docker Build
+    runs-on: ubuntu-latest
+    needs: lint-and-validate
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build image
+        run: docker build -t algoline:ci .
+
+      - name: Smoke test
+        run: |
+          docker run -d --name algoline-test -p 7860:7860 algoline:ci
+          sleep 10
+          curl -f http://localhost:7860/ || (docker logs algoline-test && exit 1)
+          docker stop algoline-test
