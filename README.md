@@ -41,15 +41,6 @@ Algoline is a web-based machine learning platform that takes a raw dataset and t
 
 Under the hood, a FastAPI server handles all computation. PyCaret orchestrates model comparison across scikit-learn, XGBoost, LightGBM, and CatBoost. Optuna drives hyperparameter search. Plotly renders every chart. The frontend is vanilla HTML, CSS, and JavaScript with zero build dependencies. The whole thing ships as a Docker container.
 
-<p align="center">
-  <a href="https://huggingface.co/spaces/Al1Abdullah/AutoML">
-    <img src="https://img.shields.io/badge/Open_Live_Demo-6366f1?style=for-the-badge&logo=huggingface&logoColor=white" alt="Live Demo" />
-  </a>
-  &nbsp;&nbsp;
-  <a href="https://github.com/Al1Abdullah/Algoline/issues">
-    <img src="https://img.shields.io/badge/Report_Issue-818cf8?style=for-the-badge&logo=github&logoColor=white" alt="Report Issue" />
-  </a>
-</p>
 
 <br>
 
