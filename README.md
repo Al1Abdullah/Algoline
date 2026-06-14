@@ -4,7 +4,7 @@
 
 <p align="center">
   <a href="https://huggingface.co/spaces/Al1Abdullah/AutoML">
-    <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=500&size=20&duration=4000&pause=800&color=A78BFA&center=true&vCenter=true&width=520&height=36&lines=Automated+Machine+Learning+Platform" alt="Automated Machine Learning Platform" />
+    <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=500&size=20&duration=3000&pause=1000&color=A78BFA&center=true&vCenter=true&width=520&height=36&lines=From+Raw+Data+to+Deployed+Model+in+Minutes;Train+%C2%B7+Compare+%C2%B7+Tune+%C2%B7+Export;No+Notebooks.+No+Boilerplate.+Just+Results." alt="Slogan" />
   </a>
 </p>
 
