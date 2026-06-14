@@ -869,27 +869,38 @@ body {
   background: linear-gradient(90deg, transparent, rgba(79,70,229,0.15), transparent);
 }
 
-/* ── Cards: indigo-tinted surface + shadow for depth ── */
+/* ── Cards: indigo-tinted surface + STRONG shadow for depth ── */
 [data-theme="light"] .card {
-  background: linear-gradient(135deg, rgba(79,70,229,0.02) 0%, #ffffff 100%);
-  border: 1px solid #c7cad6;
-  box-shadow: 0 1px 4px rgba(55,48,120,0.08), 0 2px 8px rgba(55,48,120,0.04);
+  background: linear-gradient(135deg, rgba(79,70,229,0.025) 0%, #ffffff 100%);
+  border: 1px solid rgba(79,70,229,0.12);
+  box-shadow:
+    0 1px 2px rgba(55,48,120,0.06),
+    0 4px 12px rgba(55,48,120,0.08),
+    0 8px 28px rgba(55,48,120,0.06);
   backdrop-filter: none; -webkit-backdrop-filter: none;
 }
 [data-theme="light"] .card:hover {
-  border-color: rgba(79,70,229,0.35);
-  box-shadow: 0 4px 16px rgba(55,48,120,0.12), 0 0 0 1px rgba(79,70,229,0.1);
+  border-color: rgba(79,70,229,0.3);
+  box-shadow:
+    0 2px 4px rgba(55,48,120,0.08),
+    0 8px 24px rgba(55,48,120,0.12),
+    0 16px 40px rgba(55,48,120,0.08),
+    0 0 0 1px rgba(79,70,229,0.08);
+  transform: translateY(-1px);
 }
 
-/* ── Metrics cards: subtle indigo tint ── */
+/* ── Metrics cards: slightly stronger tint ── */
 [data-theme="light"] .metrics-grid .card {
-  background: linear-gradient(135deg, rgba(79,70,229,0.03) 0%, #ffffff 100%);
+  background: linear-gradient(135deg, rgba(79,70,229,0.04) 0%, #ffffff 100%);
 }
 
 /* ── Table: VISIBLE column borders + colored header ── */
 [data-theme="light"] .table-wrap {
-  border: 1px solid #c7cad6;
-  box-shadow: 0 1px 4px rgba(55,48,120,0.06);
+  border: 1px solid rgba(79,70,229,0.12);
+  box-shadow:
+    0 2px 8px rgba(55,48,120,0.06),
+    0 6px 20px rgba(55,48,120,0.05);
+  border-radius: 12px;
 }
 [data-theme="light"] .data-table th {
   background: linear-gradient(180deg, #e8e9f4 0%, #f0f1f8 100%);
@@ -907,11 +918,20 @@ body {
 [data-theme="light"] .data-table tbody tr:hover { background: rgba(79,70,229,0.05); }
 [data-theme="light"] .data-table tbody tr:nth-child(even) { background: rgba(79,70,229,0.02); }
 
-/* ── Plot cards: indigo-tinted ── */
+/* ── Plot cards: indigo-tinted + depth shadow ── */
 [data-theme="light"] .plot-card {
-  background: linear-gradient(135deg, rgba(79,70,229,0.02) 0%, #ffffff 100%);
-  border: 1px solid #c7cad6;
-  box-shadow: 0 1px 4px rgba(55,48,120,0.06);
+  background: linear-gradient(135deg, rgba(79,70,229,0.025) 0%, #ffffff 100%);
+  border: 1px solid rgba(79,70,229,0.12);
+  box-shadow:
+    0 1px 2px rgba(55,48,120,0.06),
+    0 4px 12px rgba(55,48,120,0.08),
+    0 8px 28px rgba(55,48,120,0.05);
+}
+[data-theme="light"] .plot-card:hover {
+  box-shadow:
+    0 4px 12px rgba(55,48,120,0.1),
+    0 12px 32px rgba(55,48,120,0.08);
+  transform: translateY(-2px);
 }
 
 /* ── Tab bar: tinted ── */
@@ -923,28 +943,39 @@ body {
   box-shadow: 0 2px 6px rgba(79,70,229,0.2);
 }
 
-/* ── Insight cards: tinted ── */
+/* ── Insight cards: tinted + shadow ── */
 [data-theme="light"] .insight-card {
-  background: linear-gradient(135deg, rgba(79,70,229,0.02) 0%, #ffffff 100%);
-  border: 1px solid #d0d3e0;
+  background: linear-gradient(135deg, rgba(79,70,229,0.025) 0%, #ffffff 100%);
+  border: 1px solid rgba(79,70,229,0.1);
+  box-shadow: 0 2px 8px rgba(55,48,120,0.06), 0 4px 16px rgba(55,48,120,0.04);
 }
 
-/* ── Summary banner: tinted ── */
+/* ── Summary banner: tinted + shadow ── */
 [data-theme="light"] .summary-banner {
   background: linear-gradient(135deg, rgba(79,70,229,0.07) 0%, rgba(255,255,255,0.95) 100%);
   border: 1px solid rgba(79,70,229,0.15);
-  box-shadow: 0 1px 6px rgba(55,48,120,0.06);
+  box-shadow:
+    0 2px 6px rgba(55,48,120,0.06),
+    0 6px 20px rgba(55,48,120,0.05);
 }
 
-/* ── Upload area ── */
+/* ── Upload area: shadow ── */
 [data-theme="light"] .upload-area {
   background: linear-gradient(135deg, rgba(79,70,229,0.02) 0%, #ffffff 100%);
   border: 2px dashed #b5b8c8;
+  box-shadow: 0 2px 8px rgba(55,48,120,0.05), 0 4px 16px rgba(55,48,120,0.04);
+}
+[data-theme="light"] .upload-area:hover {
+  box-shadow: 0 4px 16px rgba(79,70,229,0.12), 0 8px 28px rgba(55,48,120,0.06);
 }
 
-/* ── Checkbox items: tinted ── */
+/* ── Checkbox items: tinted + subtle shadow ── */
 [data-theme="light"] .checkbox-item {
   background: linear-gradient(135deg, rgba(79,70,229,0.02) 0%, #ffffff 100%);
+  box-shadow: 0 1px 3px rgba(55,48,120,0.06);
+}
+[data-theme="light"] .checkbox-item:hover {
+  box-shadow: 0 2px 8px rgba(79,70,229,0.1);
 }
 
 /* ── Best model card ── */
