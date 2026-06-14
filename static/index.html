@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AutoML Studio</title>
+<title>Algoline</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -180,22 +180,25 @@ body {
    SIDEBAR
    ────────────────────────────────────────────── */
 .sidebar-logo {
-  font-size: 18px; font-weight: 700;
-  letter-spacing: -0.03em;
+  font-size: 22px; font-weight: 700;
+  letter-spacing: -0.04em;
   color: var(--text-primary);
   padding: 0 8px 28px;
-  display: flex; align-items: center; gap: 10px;
+  display: flex; align-items: center;
   position: relative;
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 50%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 .sidebar-logo::before {
   content: '';
-  position: absolute; left: -8px; top: -10px;
-  width: 36px; height: 36px; border-radius: 50%;
+  position: absolute; left: -4px; top: -6px;
+  width: 30px; height: 30px; border-radius: 50%;
   background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
-  filter: blur(8px);
+  filter: blur(10px);
   pointer-events: none;
 }
-.sidebar-logo svg { flex-shrink: 0; }
 .sidebar-nav { display: flex; flex-direction: column; gap: 4px; }
 .nav-item {
   display: flex; align-items: center; gap: 10px;
@@ -1028,10 +1031,7 @@ body {
      ════════════════════════════════════════════ -->
 <nav class="sidebar">
   <div class="sidebar-logo">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
-      <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
-    </svg>
-    <span>AutoML Studio</span>
+    <span>Algoline</span>
   </div>
   <div class="sidebar-nav">
     <a class="nav-item active" onclick="showSection('data')" data-section="data">
