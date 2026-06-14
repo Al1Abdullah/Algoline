@@ -2,71 +2,133 @@
 
 <br>
 
-# **Algoline**
-
-**Automated Machine Learning Platform**
+<a href="https://github.com/Al1Abdullah/Algoline">
+  <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=800&size=42&duration=3000&pause=1000&color=6366F1&center=true&vCenter=true&width=320&height=60&lines=Algoline" alt="Algoline" />
+</a>
 
 <br>
+
+<a href="https://huggingface.co/spaces/Al1Abdullah/AutoML">
+  <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=500&size=18&duration=4000&pause=800&color=A78BFA&center=true&vCenter=true&width=500&height=30&lines=Automated+Machine+Learning+Platform" alt="Automated Machine Learning Platform" />
+</a>
+
+<br><br>
 
 [![Python](https://img.shields.io/badge/Python-3.10-4f46e5?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-6366f1?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
 [![PyCaret](https://img.shields.io/badge/PyCaret-3.3-818cf8?style=for-the-badge)](https://pycaret.org)
 [![Optuna](https://img.shields.io/badge/Optuna-3.5+-a78bfa?style=for-the-badge)](https://optuna.org)
-[![CI](https://img.shields.io/github/actions/workflow/status/Al1Abdullah/Algoline/ci.yml?style=for-the-badge&label=CI&color=4f46e5)](https://github.com/Al1Abdullah/Algoline/actions)
+[![Docker](https://img.shields.io/badge/Docker-Ready-c4b5fd?style=for-the-badge&logo=docker&logoColor=white)](https://docker.com)
+[![License](https://img.shields.io/badge/License-MIT-4f46e5?style=for-the-badge)](LICENSE)
 
 <br>
 
-A complete machine learning platform that takes you from raw data to a deployable model,
-entirely in your browser. No notebooks. No boilerplate. Just results.
+A complete machine learning platform that takes you from a raw dataset to a deployable model pipeline, entirely in your browser. No notebooks, no boilerplate, no setup friction.
 
 <br>
 
-[**Try the Live Demo**](https://huggingface.co/spaces/Al1Abdullah/AutoML)
+<a href="https://huggingface.co/spaces/Al1Abdullah/AutoML">
+  <img src="https://img.shields.io/badge/▶_Open_Live_Demo-6366f1?style=for-the-badge&logoColor=white" alt="Live Demo" />
+</a>
+&nbsp;&nbsp;
+<a href="https://github.com/Al1Abdullah/Algoline/issues">
+  <img src="https://img.shields.io/badge/⚑_Report_Issue-818cf8?style=for-the-badge&logoColor=white" alt="Report Issue" />
+</a>
 
-<br>
+<br><br>
 
 </div>
 
-<br>
+<!-- ═══════════════════════════════════════════════════════════════════ -->
 
-## What is this
+## Overview
 
-Algoline is a web based ML platform where you upload a dataset, explore it through interactive visualizations, and train models against each other automatically. The system handles preprocessing, runs cross validated comparisons across a wide set of algorithms, surfaces the best performer, and lets you tune it further with Bayesian optimization. When you are happy with the results, you download the trained pipeline as a `.pkl` file and use it wherever Python runs.
+Algoline is a web based ML platform built for speed and clarity. You upload a dataset, the system profiles it on arrival, and you can explore it through eighteen different interactive visualizations before any model is trained. When you are ready, a single click triggers a full cross validated comparison across every relevant algorithm, from logistic regression and random forests through XGBoost, LightGBM, and CatBoost. The best performer is surfaced on a ranked leaderboard, and you can optionally tune it with Bayesian optimization through Optuna.
 
-The whole thing is a single FastAPI server serving a single page frontend. No React, no Vue, no build step. The backend does the heavy computation, the frontend handles the interaction. It deploys as a Docker container.
+The result is a downloadable `.pkl` pipeline file that contains the complete trained model. Load it anywhere Python runs, call `predict()`, and you are in production.
 
-<br>
-
-## How it works
-
-The platform is organized into four steps that mirror a natural ML workflow.
-
-**Data** — You drop a CSV, TSV, or Excel file into the upload area. Algoline immediately profiles it: row count, column count, missing values, duplicates, inferred types, and descriptive statistics. It generates contextual insights about data quality issues so you know what you are dealing with before doing anything else. You pick a target column, and the system infers whether you are looking at a classification or regression problem.
-
-**Explore** — Eighteen interactive chart types help you understand the data. These are grouped into distribution analysis (histograms, KDE, box plots, violin plots), missing data patterns (bar charts and heatmaps), correlations (heatmaps, pair plots, scatter and joint plots), target analysis (count plots, pie charts, class distributions, mean target breakdowns), and advanced views (scatter vs index, grouped box plots, faceted small multiples). Everything is rendered with Plotly, so you can zoom, pan, and hover for details.
-
-**Build** — You configure preprocessing toggles (duplicate removal, outlier handling, normalization, multicollinearity filtering, skewness transforms, polynomial features, feature selection, class imbalance correction), set your test split and fold count, and hit train. PyCaret runs a cross validated comparison across every relevant algorithm and returns a ranked leaderboard. The best model gets its own highlighted card. You can view comparison charts across any metric, inspect confusion matrices and prediction distributions, and then optionally tune the winner using Optuna, random search, or grid search.
-
-**Export** — Three downloads: the finalized model pipeline (`.pkl`), the full leaderboard (`.csv`), and the holdout predictions (`.csv`). The pipeline file contains everything needed to call `predict()` on new data in any Python environment.
+Under the hood, it is a single FastAPI server handling the computation, a single HTML file handling the interface, and a Docker container handling the deployment. No React. No Vue. No build step. Everything is deliberate.
 
 <br>
 
-## Tech stack
+<!-- ═══════════════════════════════════════════════════════════════════ -->
 
-| Layer | What |
+## Platform Walkthrough
+
+### Data Ingestion and Profiling
+
+You drop a CSV, TSV, or Excel file into the upload zone. Algoline immediately parses it and returns four summary metrics (rows, columns, missing values, duplicates), a full statistical breakdown, inferred column types, and automated quality insights that flag issues before you have to go looking for them. You then select a target column, and the system infers whether you are working on a classification or regression task based on the target's value distribution.
+
+<br>
+
+### Exploratory Analysis
+
+Eighteen interactive chart types are available, organized into five analytical categories. Each one is rendered with Plotly, so you can zoom, pan, hover for values, and export individual charts.
+
+| Category | Visualizations |
 |:--|:--|
-| **Server** | FastAPI with Uvicorn, Python 3.10 |
-| **ML** | PyCaret 3.3, which wraps scikit-learn, XGBoost, LightGBM, and CatBoost |
-| **Tuning** | Optuna 3.5+ with TPE (Tree-structured Parzen Estimator) sampling |
-| **Charts** | Plotly 5.24, generated server side, rendered client side |
-| **Frontend** | Vanilla HTML, CSS, and JavaScript. No frameworks, no build tools |
-| **Deployment** | Docker container, runs on Hugging Face Spaces |
+| **Distribution** | Histogram, KDE plot, Box plot, Violin plot |
+| **Missing Data** | Missing value bar chart, Missing value heatmap |
+| **Correlation** | Correlation heatmap, Pair plot, Scatter plot, Joint plot |
+| **Target Analysis** | Count plot, Pie chart, Class distribution, Target histogram, Mean target per category |
+| **Advanced** | Scatter vs index, Grouped box plot, Faceted small multiples |
+
+The goal is to give you deep familiarity with your data before committing to a modeling strategy. These are not static images; they are fully interactive and re-render when you switch themes.
 
 <br>
 
-## Algorithms
+### Model Training and Comparison
 
-The platform automatically picks which set to run based on your task type.
+Configure eight preprocessing toggles independently:
+
+| Option | Default | Purpose |
+|:--|:--|:--|
+| Drop Duplicates | On | Remove exact row copies |
+| Remove Outliers | Off | Filter statistical outliers |
+| Normalize | On | Scale numeric features |
+| Drop Multicollinear | On | Remove highly correlated feature pairs |
+| Transform Skew | Off | Apply power transforms to skewed distributions |
+| Feature Selection | Off | Reduce dimensionality automatically |
+| Polynomial Features | Off | Generate interaction terms |
+| Fix Class Imbalance | Off | Balance underrepresented classes |
+
+Set your test split ratio and cross validation fold count, then hit train. PyCaret runs every relevant algorithm, scores them with cross validation, and returns a ranked leaderboard. The winning model gets a highlighted card with key metrics, and you can compare all models visually across any metric through an interactive bar chart.
+
+Evaluation diagnostics are generated automatically: confusion matrices, prediction distributions, and performance curves, all inside the same interface.
+
+<br>
+
+### Hyperparameter Tuning
+
+After training, you can push the best model further. Three tuning strategies are available:
+
+| Strategy | Engine | Best for |
+|:--|:--|:--|
+| **Bayesian (Optuna)** | TPE sampler | Smart, sample-efficient search (recommended) |
+| **Random Search** | scikit-learn | Broad exploration of parameter space |
+| **Grid Search** | scikit-learn | Exhaustive evaluation of defined ranges |
+
+Set the number of iterations, run the tuner, and Algoline re-evaluates performance, regenerates all evaluation plots, and tells you whether the tuned version actually improved. If it did not, the original model is preserved automatically.
+
+<br>
+
+### Export and Deployment
+
+Three artifacts are available for download once you are satisfied with the results:
+
+| Artifact | Format | Description |
+|:--|:--|:--|
+| **Pipeline** | `.pkl` | Serialized model, ready for `predict()` in any Python environment |
+| **Leaderboard** | `.csv` | Full model comparison with cross validated metrics |
+| **Predictions** | `.csv` | Model output on the holdout test set |
+
+The pipeline file is a self contained object. You load it with `joblib` or PyCaret's `load_model()`, pass new data, and get predictions. No retraining, no environment dependencies beyond the model's own libraries.
+
+<br>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+
+## Supported Algorithms
 
 <table>
 <tr>
@@ -87,36 +149,64 @@ Linear Regression, Lasso, Ridge, Elastic Net, Decision Tree, Random Forest, Extr
 </tr>
 </table>
 
-A time budget is applied during training to keep things practical on free tier infrastructure. You still get a thorough comparison, it just won't spend twenty minutes on a single slow model.
+A time budget is applied during training so the comparison stays practical. You still get a thorough evaluation; it simply will not spend twenty minutes stuck on a single slow estimator.
 
 <br>
 
-## Theming
+<!-- ═══════════════════════════════════════════════════════════════════ -->
 
-The interface supports dark and light modes, toggled from the top right corner. The dark theme uses glassmorphism with translucent surfaces and indigo ambient effects. The light theme uses an indigo-tinted palette with layered card shadows and visible table gridlines. All Plotly charts re-render their colors to match the active theme. Both modes are fully independent and nothing bleeds between them.
+## Interface Design
+
+The interface is built with a dual theme system. A toggle in the top right corner switches between dark and light modes instantly.
+
+The **dark theme** uses glassmorphism with translucent card surfaces, ambient indigo gradient effects, and subtle glow animations. The **light theme** uses an indigo-tinted color palette with layered card shadows, visible table gridlines, and a gradient sidebar. Every Plotly chart re-renders its text, gridlines, and background colors to match the active theme. The two modes are completely independent; nothing from one bleeds into the other.
+
+Typography is set in Inter, spacing is intentional, and animations are kept minimal. Every visual element is there to communicate, not to decorate.
 
 <br>
 
-## Project structure
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+
+## Tech Stack
+
+| Layer | Technology |
+|:--|:--|
+| **Server** | FastAPI with Uvicorn |
+| **Runtime** | Python 3.10 |
+| **ML Engine** | PyCaret 3.3 (wraps scikit-learn, XGBoost, LightGBM, CatBoost) |
+| **Optimization** | Optuna 3.5+ with Tree-structured Parzen Estimator sampling |
+| **Visualization** | Plotly 5.24 (server-side generation, client-side rendering) |
+| **Frontend** | Vanilla HTML, CSS custom properties, JavaScript |
+| **Containerization** | Docker |
+| **Hosting** | Hugging Face Spaces |
+
+<br>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+
+## Project Structure
 
 ```
 algoline/
 ├── .github/
 │   └── workflows/
-│       └── ci.yml              GitHub Actions CI pipeline
+│       └── ci.yml              CI pipeline (lint, validate, build, smoke test)
 ├── static/
-│   └── index.html              Complete frontend (single file SPA)
-├── main.py                     FastAPI backend, 30+ API endpoints
+│   └── index.html              Single-page frontend application
+├── main.py                     FastAPI backend with 30+ API endpoints
 ├── requirements.txt            Python dependencies
-├── Dockerfile                  Production container config
+├── Dockerfile                  Production container configuration
+├── LICENSE                     MIT License
 └── README.md
 ```
 
 <br>
 
-## Getting started
+<!-- ═══════════════════════════════════════════════════════════════════ -->
 
-**Run locally**
+## Getting Started
+
+**Local Setup**
 
 ```bash
 git clone https://github.com/Al1Abdullah/Algoline.git
@@ -125,9 +215,11 @@ pip install -r requirements.txt
 python main.py
 ```
 
-Then open `http://localhost:7860`.
+Open `http://localhost:7860` in your browser.
 
-**Run with Docker**
+<br>
+
+**Docker**
 
 ```bash
 docker build -t algoline .
@@ -136,32 +228,40 @@ docker run -p 7860:7860 algoline
 
 <br>
 
-## CI/CD
+<!-- ═══════════════════════════════════════════════════════════════════ -->
 
-The project includes a GitHub Actions workflow that runs on every push and pull request to `main`. It validates that all Python imports resolve correctly, checks that every expected API route is registered, builds the Docker image, and runs a smoke test against the container to confirm the server starts and responds.
+## Continuous Integration
+
+The project includes a GitHub Actions pipeline (`.github/workflows/ci.yml`) that triggers on every push and pull request to `main`. The pipeline runs in two stages:
+
+**Lint and Validate** installs all dependencies, verifies that the server module imports cleanly, and checks that every expected API route (`/api/upload`, `/api/train`, `/api/tune`, `/api/export/pipeline`) is registered on the FastAPI app.
+
+**Docker Build** builds the production image and runs a smoke test, starting the container, waiting for the server to come up, and confirming it responds to HTTP requests. If anything fails, container logs are dumped for debugging.
 
 <br>
 
-## API reference
+<!-- ═══════════════════════════════════════════════════════════════════ -->
+
+## API Reference
 
 <details>
-<summary><strong>Data</strong></summary>
+<summary><strong>Data Endpoints</strong></summary>
 
 <br>
 
-| Method | Route | What it does |
+| Method | Route | Description |
 |:--|:--|:--|
-| `POST` | `/api/upload` | Upload a dataset with automatic profiling |
-| `POST` | `/api/target` | Set the target column, auto-detect task type |
+| `POST` | `/api/upload` | Upload dataset (CSV, TSV, XLSX) with automatic profiling |
+| `POST` | `/api/target` | Set target column, auto-detect task type |
 
 </details>
 
 <details>
-<summary><strong>Explore</strong></summary>
+<summary><strong>Exploration Endpoints (18 chart types)</strong></summary>
 
 <br>
 
-| Method | Route | What it does |
+| Method | Route | Description |
 |:--|:--|:--|
 | `POST` | `/api/explore/distribution` | Histogram |
 | `POST` | `/api/explore/kde` | Kernel density estimation |
@@ -171,7 +271,7 @@ The project includes a GitHub Actions workflow that runs on every push and pull 
 | `POST` | `/api/explore/missing_heatmap` | Missing value heatmap |
 | `POST` | `/api/explore/correlation` | Correlation heatmap |
 | `POST` | `/api/explore/pairplot` | Pair plot matrix |
-| `POST` | `/api/explore/scatter_xy` | Scatter plot (two features) |
+| `POST` | `/api/explore/scatter_xy` | Two-feature scatter plot |
 | `POST` | `/api/explore/jointplot` | Joint distribution |
 | `POST` | `/api/explore/countplot` | Count plot |
 | `POST` | `/api/explore/pie` | Pie chart |
@@ -186,24 +286,24 @@ The project includes a GitHub Actions workflow that runs on every push and pull 
 </details>
 
 <details>
-<summary><strong>Training and tuning</strong></summary>
+<summary><strong>Training and Tuning Endpoints</strong></summary>
 
 <br>
 
-| Method | Route | What it does |
+| Method | Route | Description |
 |:--|:--|:--|
-| `POST` | `/api/train` | Compare models, return leaderboard and eval plots |
-| `POST` | `/api/compare` | Re-render comparison chart for a different metric |
-| `POST` | `/api/tune` | Hyperparameter optimization (Optuna / random / grid) |
+| `POST` | `/api/train` | Compare all models, return leaderboard and evaluation plots |
+| `POST` | `/api/compare` | Re-render metric comparison chart |
+| `POST` | `/api/tune` | Hyperparameter optimization (Bayesian, random, or grid) |
 
 </details>
 
 <details>
-<summary><strong>Export</strong></summary>
+<summary><strong>Export Endpoints</strong></summary>
 
 <br>
 
-| Method | Route | What it does |
+| Method | Route | Description |
 |:--|:--|:--|
 | `GET` | `/api/export/pipeline` | Download finalized model (.pkl) |
 | `GET` | `/api/export/leaderboard` | Download model comparison (.csv) |
@@ -213,6 +313,8 @@ The project includes a GitHub Actions workflow that runs on every push and pull 
 </details>
 
 <br>
+
+<!-- ═══════════════════════════════════════════════════════════════════ -->
 
 ## License
 
