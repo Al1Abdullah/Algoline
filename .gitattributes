@@ -1,3 +1,0 @@
-# GitHub Linguist overrides
-static/index.html linguist-vendored=true
-static/*.html linguist-vendored=true
