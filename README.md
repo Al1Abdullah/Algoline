@@ -26,11 +26,11 @@ A complete machine learning platform that takes you from a raw dataset to a depl
 <br>
 
 <a href="https://huggingface.co/spaces/Al1Abdullah/AutoML">
-  <img src="https://img.shields.io/badge/▶_Open_Live_Demo-6366f1?style=for-the-badge&logoColor=white" alt="Live Demo" />
+  <img src="https://img.shields.io/badge/Open_Live_Demo-6366f1?style=for-the-badge&logo=huggingface&logoColor=white" alt="Live Demo" />
 </a>
 &nbsp;&nbsp;
 <a href="https://github.com/Al1Abdullah/Algoline/issues">
-  <img src="https://img.shields.io/badge/⚑_Report_Issue-818cf8?style=for-the-badge&logoColor=white" alt="Report Issue" />
+  <img src="https://img.shields.io/badge/Report_Issue-818cf8?style=for-the-badge&logo=github&logoColor=white" alt="Report Issue" />
 </a>
 
 <br><br>
