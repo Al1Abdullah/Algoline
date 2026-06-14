@@ -47,43 +47,47 @@
   --plot-bg: rgba(0,0,0,0);
   --upload-hover-shadow: rgba(99,102,241,0.08);
   --loading-bg: rgba(6,6,10,0.85);
+  --table-cell-border: rgba(255,255,255,0.04);
+  --card-bg-tint: rgba(255,255,255,0.035);
 }
 
 [data-theme="light"] {
-  --bg-primary: #f0f2f6;
-  --bg-secondary: #e8eaf0;
-  --bg-tertiary: #e2e4ea;
+  --bg-primary: #eef0f7;
+  --bg-secondary: #e6e8f2;
+  --bg-tertiary: #dfe2ee;
   --surface: #ffffff;
-  --surface-hover: #f8f9fb;
-  --surface-alt: #f3f4f6;
-  --border: #d1d5db;
-  --border-light: #e5e7eb;
+  --surface-hover: #f6f7fb;
+  --surface-alt: #f0f1f8;
+  --border: #c7cad6;
+  --border-light: #dddfe8;
   --text-primary: #111827;
   --text-secondary: #374151;
-  --text-tertiary: #6b7280;
-  --text-muted: #9ca3af;
-  --text-faint: #c7c7d0;
+  --text-tertiary: #5b6078;
+  --text-muted: #8b90a5;
+  --text-faint: #b5b8c8;
   --accent: #4f46e5;
   --accent-hover: #6366f1;
   --accent-deep: #4338ca;
-  --accent-surface: rgba(79,70,229,0.06);
-  --accent-border: rgba(79,70,229,0.3);
+  --accent-surface: rgba(79,70,229,0.07);
+  --accent-border: rgba(79,70,229,0.25);
   --accent-glow: rgba(79,70,229,0.15);
-  --shadow: rgba(0,0,0,0.08);
-  --shadow-heavy: rgba(0,0,0,0.12);
+  --shadow: rgba(55,48,120,0.08);
+  --shadow-heavy: rgba(55,48,120,0.14);
   --input-bg: #ffffff;
-  --sidebar-bg: #ffffff;
-  --sidebar-top: rgba(79,70,229,0.04);
-  --scrollbar-thumb: rgba(0,0,0,0.12);
-  --scrollbar-thumb-hover: rgba(0,0,0,0.22);
+  --sidebar-bg: rgba(255,255,255,0.97);
+  --sidebar-top: rgba(79,70,229,0.12);
+  --scrollbar-thumb: rgba(79,70,229,0.12);
+  --scrollbar-thumb-hover: rgba(79,70,229,0.25);
   --danger: #dc2626;
   --success: #16a34a;
   --warning: #d97706;
-  --chart-grid: rgba(0,0,0,0.08);
+  --chart-grid: rgba(79,70,229,0.08);
   --chart-text: #4b5563;
   --plot-bg: rgba(0,0,0,0);
-  --upload-hover-shadow: rgba(79,70,229,0.12);
-  --loading-bg: rgba(240,242,246,0.92);
+  --upload-hover-shadow: rgba(79,70,229,0.15);
+  --loading-bg: rgba(238,240,247,0.94);
+  --table-cell-border: #c7cad6;
+  --card-bg-tint: rgba(79,70,229,0.025);
 }
 /* ──────────────────────────────────────────────
    RESET & BASE
@@ -842,32 +846,114 @@ body {
 .theme-toggle:hover svg { transform: rotate(15deg); }
 
 /* ──────────────────────────────────────────────
-   LIGHT THEME OVERRIDES (minimal — variables handle the rest)
+   LIGHT THEME OVERRIDES
    ────────────────────────────────────────────── */
 
-/* Body gradient must be explicitly re-set */
+/* ── Body: strong indigo-tinted ambient background ── */
 [data-theme="light"] body {
   background:
-    radial-gradient(ellipse 70% 50% at 15% 5%, rgba(79,70,229,0.05) 0%, transparent 50%),
-    linear-gradient(180deg, #f0f2f6 0%, #e8eaf0 50%, #e2e4ea 100%);
+    radial-gradient(ellipse 80% 60% at 10% 0%, rgba(79,70,229,0.1) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 90% 10%, rgba(99,102,241,0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 50% 50% at 50% 95%, rgba(79,70,229,0.05) 0%, transparent 50%),
+    linear-gradient(180deg, #eef0f7 0%, #e6e8f2 40%, #dfe2ee 100%);
 }
 
-/* Remove backdrop blur in light mode (looks muddy on white) */
-[data-theme="light"] .card { backdrop-filter: none; -webkit-backdrop-filter: none; }
-[data-theme="light"] .sidebar { backdrop-filter: none; -webkit-backdrop-filter: none; }
+/* ── Sidebar: indigo-tinted gradient, not plain white ── */
+[data-theme="light"] .sidebar {
+  background: linear-gradient(180deg, rgba(79,70,229,0.1) 0%, rgba(79,70,229,0.04) 30%, rgba(255,255,255,0.97) 70%, #f0f1f8 100%);
+  border-right: 1px solid rgba(79,70,229,0.12);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+  box-shadow: 2px 0 12px rgba(79,70,229,0.06);
+}
+[data-theme="light"] .sidebar::after {
+  background: linear-gradient(90deg, transparent, rgba(79,70,229,0.15), transparent);
+}
 
-/* Card box-shadow for depth in light mode */
+/* ── Cards: indigo-tinted surface + shadow for depth ── */
 [data-theme="light"] .card {
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  background: linear-gradient(135deg, rgba(79,70,229,0.02) 0%, #ffffff 100%);
+  border: 1px solid #c7cad6;
+  box-shadow: 0 1px 4px rgba(55,48,120,0.08), 0 2px 8px rgba(55,48,120,0.04);
+  backdrop-filter: none; -webkit-backdrop-filter: none;
+}
+[data-theme="light"] .card:hover {
+  border-color: rgba(79,70,229,0.35);
+  box-shadow: 0 4px 16px rgba(55,48,120,0.12), 0 0 0 1px rgba(79,70,229,0.1);
 }
 
-/* Best model highlight */
+/* ── Metrics cards: subtle indigo tint ── */
+[data-theme="light"] .metrics-grid .card {
+  background: linear-gradient(135deg, rgba(79,70,229,0.03) 0%, #ffffff 100%);
+}
+
+/* ── Table: VISIBLE column borders + colored header ── */
+[data-theme="light"] .table-wrap {
+  border: 1px solid #c7cad6;
+  box-shadow: 0 1px 4px rgba(55,48,120,0.06);
+}
+[data-theme="light"] .data-table th {
+  background: linear-gradient(180deg, #e8e9f4 0%, #f0f1f8 100%);
+  color: #374151;
+  border-bottom: 2px solid #b4b7cc;
+  border-right: 1px solid #d0d3e0;
+}
+[data-theme="light"] .data-table th:last-child { border-right: none; }
+[data-theme="light"] .data-table td {
+  border-bottom: 1px solid #dddfe8;
+  border-right: 1px solid #e8eaf0;
+  color: #374151;
+}
+[data-theme="light"] .data-table td:last-child { border-right: none; }
+[data-theme="light"] .data-table tbody tr:hover { background: rgba(79,70,229,0.05); }
+[data-theme="light"] .data-table tbody tr:nth-child(even) { background: rgba(79,70,229,0.02); }
+
+/* ── Plot cards: indigo-tinted ── */
+[data-theme="light"] .plot-card {
+  background: linear-gradient(135deg, rgba(79,70,229,0.02) 0%, #ffffff 100%);
+  border: 1px solid #c7cad6;
+  box-shadow: 0 1px 4px rgba(55,48,120,0.06);
+}
+
+/* ── Tab bar: tinted ── */
+[data-theme="light"] .tab-bar {
+  background: #e8e9f4;
+  border: 1px solid #c7cad6;
+}
+[data-theme="light"] .tab-btn.active {
+  box-shadow: 0 2px 6px rgba(79,70,229,0.2);
+}
+
+/* ── Insight cards: tinted ── */
+[data-theme="light"] .insight-card {
+  background: linear-gradient(135deg, rgba(79,70,229,0.02) 0%, #ffffff 100%);
+  border: 1px solid #d0d3e0;
+}
+
+/* ── Summary banner: tinted ── */
+[data-theme="light"] .summary-banner {
+  background: linear-gradient(135deg, rgba(79,70,229,0.07) 0%, rgba(255,255,255,0.95) 100%);
+  border: 1px solid rgba(79,70,229,0.15);
+  box-shadow: 0 1px 6px rgba(55,48,120,0.06);
+}
+
+/* ── Upload area ── */
+[data-theme="light"] .upload-area {
+  background: linear-gradient(135deg, rgba(79,70,229,0.02) 0%, #ffffff 100%);
+  border: 2px dashed #b5b8c8;
+}
+
+/* ── Checkbox items: tinted ── */
+[data-theme="light"] .checkbox-item {
+  background: linear-gradient(135deg, rgba(79,70,229,0.02) 0%, #ffffff 100%);
+}
+
+/* ── Best model card ── */
 [data-theme="light"] #best-model-card {
   border-left: 3px solid #4f46e5 !important;
-  background: linear-gradient(135deg, rgba(79,70,229,0.06) 0%, #ffffff 100%) !important;
+  background: linear-gradient(135deg, rgba(79,70,229,0.08) 0%, #ffffff 100%) !important;
 }
 
-/* Inline white text override */
+/* ── Inline white text safety ── */
 [data-theme="light"] span[style*="color:#fff"],
 [data-theme="light"] span[style*="color: #fff"],
 [data-theme="light"] div[style*="color:#fff"],
@@ -1818,8 +1904,12 @@ function renderMetricChart() {
   const values = lb.rows.map(r => parseFloat(r[metric]) || 0);
 
   const cs = getComputedStyle(document.documentElement);
-  const colors = values.map((_, i) => i === 0 ? '#6366f1' : i === 1 ? '#818cf8' : i === 2 ? '#a78bfa' : 'rgba(99,102,241,0.35)');
-  const barOutline = cs.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.12)';
+  const isLight = document.documentElement.getAttribute('data-theme') === 'light';
+  // Color palette: top 3 get strong indigo, rest get medium indigo (NEVER faded/transparent)
+  const barPalette = ['#4f46e5', '#6366f1', '#818cf8', '#a5b4fc', '#93a0f5', '#7c8cf0', '#6b7de8', '#8b96f2', '#7988ed', '#6a7ae6'];
+  const colors = values.map((_, i) => barPalette[i % barPalette.length]);
+  const barOutline = isLight ? '#4338ca' : 'rgba(255,255,255,0.15)';
+  const barOutlineWidth = isLight ? 1.5 : 1;
   const valTextColor = cs.getPropertyValue('--chart-text').trim() || '#a1a1aa';
 
   const figure = {
@@ -1828,7 +1918,7 @@ function renderMetricChart() {
       x: values,
       y: models,
       orientation: 'h',
-      marker: { color: colors, line: { width: 1, color: barOutline } },
+      marker: { color: colors, line: { width: barOutlineWidth, color: barOutline } },
       text: values.map(v => v.toFixed(4)),
       textposition: 'outside',
       textfont: { family: 'Inter', size: 11, color: valTextColor }
