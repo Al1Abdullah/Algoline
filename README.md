@@ -1,13 +1,5 @@
 <p align="center">
-  <img src="https://img.shields.io/badge/Algoline-4f46e5?style=for-the-badge&labelColor=1e1b4b&logoColor=white" alt="Algoline" height="40" />
-</p>
-
-<h1 align="center">Algoline</h1>
-
-<p align="center">
-  <a href="https://huggingface.co/spaces/Al1Abdullah/AutoML">
-    <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=500&size=18&duration=4000&pause=800&color=A78BFA&center=true&vCenter=true&width=500&height=30&lines=Automated+Machine+Learning+Platform" alt="Automated Machine Learning Platform" />
-  </a>
+  <img src="./assets/banner.png" alt="Algoline — Automated Machine Learning Platform" width="720" />
 </p>
 
 <p align="center">
@@ -16,6 +8,8 @@
   <a href="#getting-started">Getting Started</a>
   <span> · </span>
   <a href="#platform-walkthrough">Walkthrough</a>
+  <span> · </span>
+  <a href="#architecture">Architecture</a>
   <span> · </span>
   <a href="#api-reference">API Reference</a>
   <span> · </span>
@@ -157,6 +151,34 @@ Linear Regression, Lasso, Ridge, Elastic Net, Decision Tree, Random Forest, Extr
 <br>
 
 ## Architecture
+
+### How It Works
+
+```
+                    ┌─────────────────────────────────────────────┐
+                    │                  Browser                     │
+                    │         index.html + style.css + app.js      │
+                    └──────────────────┬──────────────────────────┘
+                                       │ fetch()
+                                       ▼
+                    ┌─────────────────────────────────────────────┐
+                    │               FastAPI Server                 │
+                    │                                              │
+                    │   ┌──────────┐  ┌──────────┐  ┌──────────┐  │
+                    │   │  data.py │  │explore.py│  │ build.py │  │
+                    │   │  upload  │  │ 18 chart │  │  train   │  │
+                    │   │  target  │  │endpoints │  │  tune    │  │
+                    │   └──────────┘  └──────────┘  └──────────┘  │
+                    │                                              │
+                    │   ┌──────────┐  ┌──────────────────────────┐ │
+                    │   │export.py │  │     helpers.py            │ │
+                    │   │ download │  │ state.py (session store)  │ │
+                    │   └──────────┘  └──────────────────────────┘ │
+                    │                                              │
+                    │   PyCaret ─── scikit-learn ─── XGBoost       │
+                    │   LightGBM ── CatBoost ── Optuna ── Plotly   │
+                    └─────────────────────────────────────────────┘
+```
 
 ### Tech Stack
 
