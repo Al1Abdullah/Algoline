@@ -982,6 +982,14 @@ body {
 [data-theme="light"] #best-model-card {
   border-left: 3px solid #4f46e5 !important;
   background: linear-gradient(135deg, rgba(79,70,229,0.08) 0%, #ffffff 100%) !important;
+  box-shadow: 0 2px 8px rgba(55,48,120,0.1), 0 6px 24px rgba(55,48,120,0.08) !important;
+}
+
+/* ── Theme toggle button ── */
+[data-theme="light"] .theme-toggle {
+  background: #ffffff;
+  border: 1px solid rgba(79,70,229,0.15);
+  box-shadow: 0 2px 8px rgba(55,48,120,0.1), 0 4px 16px rgba(55,48,120,0.06);
 }
 
 /* ── Inline white text safety ── */
@@ -1020,7 +1028,7 @@ body {
      ════════════════════════════════════════════ -->
 <nav class="sidebar">
   <div class="sidebar-logo">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)">
       <path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/>
     </svg>
     <span>AutoML Studio</span>
@@ -1271,7 +1279,7 @@ body {
       <div class="card mt-md" id="best-model-card" style="border-left: 3px solid #6366f1; background: linear-gradient(135deg, rgba(99,102,241,0.08) 0%, rgba(255,255,255,0.04) 100%); animation: glowPulse 3s ease-in-out infinite">
         <div class="card-label">Best Model</div>
         <div style="display:flex;align-items:center;gap:10px">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color:var(--accent)"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
           <div class="card-value" id="best-model-name">--</div>
         </div>
       </div>
