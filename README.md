@@ -2,9 +2,7 @@
 
 <br>
 
-<a href="https://github.com/Al1Abdullah/Algoline">
-  <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=800&size=42&duration=3000&pause=1000&color=6366F1&center=true&vCenter=true&width=320&height=60&lines=Algoline" alt="Algoline" />
-</a>
+# **Algoline**
 
 <br>
 
