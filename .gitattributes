@@ -1,0 +1,3 @@
+# GitHub Linguist overrides
+# The frontend is a single bundled SPA file, not representative of the project's primary language
+static/index.html linguist-vendored
