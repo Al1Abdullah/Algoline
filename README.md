@@ -1,6 +1,6 @@
 ---
 title: Algoline
-emoji: ⚡
+emoji: 🔷
 colorFrom: indigo
 colorTo: purple
 sdk: docker
@@ -56,14 +56,14 @@ Algoline is not a notebook. It is not a drag and drop toy. It is a complete, sel
 <tr>
 <td width="50%" valign="top">
 
-### 📊 Intelligent Data Profiling
+### Intelligent Data Profiling
 
 The moment you upload a file, Algoline computes row and column counts, scans for missing values and duplicates, infers data types, and generates a statistical summary. It flags quality issues automatically through contextual insights, telling you what matters before you even ask.
 
 </td>
 <td width="50%" valign="top">
 
-### 🔍 18 Interactive Visualizations
+### 18 Interactive Visualizations
 
 Distribution analysis (histograms, KDE, box plots, violin plots), correlation heatmaps, pair plots, scatter matrices, missing value heatmaps, joint plots, pie charts, count plots, mean target breakdowns, grouped box plots, and faceted small multiples. Every chart is rendered with Plotly, fully zoomable, and theme aware.
 
@@ -72,14 +72,14 @@ Distribution analysis (histograms, KDE, box plots, violin plots), correlation he
 <tr>
 <td width="50%" valign="top">
 
-### ⚡ Automated Model Training
+### Automated Model Training
 
 One click triggers a full compare across every relevant algorithm: Logistic Regression, Random Forest, Gradient Boosting, XGBoost, LightGBM, CatBoost, SVMs, KNN, and more. PyCaret handles the heavy lifting. You get a ranked leaderboard with cross validated metrics, a highlighted best model, comparison bar charts, confusion matrices, and prediction distributions.
 
 </td>
 <td width="50%" valign="top">
 
-### 🎯 Hyperparameter Optimization
+### Hyperparameter Optimization
 
 Tune the winning model with Optuna (Bayesian), random search, or grid search. Configure iteration count, and Algoline re evaluates performance, regenerates all evaluation plots, and tells you whether the tuned version actually improved. If it didn't, the original is preserved.
 
@@ -88,14 +88,14 @@ Tune the winning model with Optuna (Bayesian), random search, or grid search. Co
 <tr>
 <td width="50%" valign="top">
 
-### 🧪 Configurable Preprocessing
+### Configurable Preprocessing
 
 Toggle eight preprocessing steps independently: duplicate removal, outlier detection, normalization, multicollinearity filtering, skewness transformation, feature selection, polynomial feature generation, and class imbalance correction. Set your test split ratio and cross validation folds. Full control, zero boilerplate.
 
 </td>
 <td width="50%" valign="top">
 
-### 📦 One Click Export
+### One Click Export
 
 Download three artifacts when you are satisfied. The **Pipeline** is a serialized `.pkl` file ready to load into any Python environment. The **Leaderboard** is a CSV of all compared models and their metrics. The **Predictions** CSV contains the model's output on the holdout set. Load the pipeline, call `predict()`, and you are in production.
 
