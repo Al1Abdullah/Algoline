@@ -1,19 +1,11 @@
 <p align="center">
-  <img src="./assets/banner.png" alt="Algoline — Automated Machine Learning Platform" width="720" />
+  <img src="./assets/banner.png" alt="Algoline" width="100%" />
 </p>
 
 <p align="center">
-  <a href="#overview">Overview</a>
-  <span> · </span>
-  <a href="#getting-started">Getting Started</a>
-  <span> · </span>
-  <a href="#platform-walkthrough">Walkthrough</a>
-  <span> · </span>
-  <a href="#architecture">Architecture</a>
-  <span> · </span>
-  <a href="#api-reference">API Reference</a>
-  <span> · </span>
-  <a href="https://huggingface.co/spaces/Al1Abdullah/AutoML">Live Demo</a>
+  <a href="https://huggingface.co/spaces/Al1Abdullah/AutoML">
+    <img src="https://readme-typing-svg.demolab.com?font=Inter&weight=500&size=20&duration=4000&pause=800&color=A78BFA&center=true&vCenter=true&width=520&height=36&lines=Automated+Machine+Learning+Platform" alt="Automated Machine Learning Platform" />
+  </a>
 </p>
 
 <p align="center">
@@ -25,6 +17,21 @@
   <a href="https://github.com/Al1Abdullah/Algoline/actions"><img src="https://img.shields.io/github/actions/workflow/status/Al1Abdullah/Algoline/ci.yml?branch=main&style=flat-square&label=CI" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-4f46e5?style=flat-square" alt="License" /></a>
 </p>
+
+<br>
+
+## Table of Contents
+
+| Section | Description |
+|:--|:--|
+| [Overview](#overview) | What Algoline does and how it works |
+| [Getting Started](#getting-started) | Local setup and Docker instructions |
+| [Platform Walkthrough](#platform-walkthrough) | Data ingestion, exploration, training, tuning, export |
+| [Supported Algorithms](#supported-algorithms) | Classification and regression models |
+| [Architecture](#architecture) | System design, tech stack, project structure |
+| [Continuous Integration](#continuous-integration) | CI/CD pipeline details |
+| [API Reference](#api-reference) | All 31 endpoints documented |
+| [Contributing](#contributing) | How to report issues and contribute |
 
 <br>
 
@@ -152,32 +159,65 @@ Linear Regression, Lasso, Ridge, Elastic Net, Decision Tree, Random Forest, Extr
 
 ## Architecture
 
-### How It Works
+### System Design
 
-```
-                    ┌─────────────────────────────────────────────┐
-                    │                  Browser                     │
-                    │         index.html + style.css + app.js      │
-                    └──────────────────┬──────────────────────────┘
-                                       │ fetch()
-                                       ▼
-                    ┌─────────────────────────────────────────────┐
-                    │               FastAPI Server                 │
-                    │                                              │
-                    │   ┌──────────┐  ┌──────────┐  ┌──────────┐  │
-                    │   │  data.py │  │explore.py│  │ build.py │  │
-                    │   │  upload  │  │ 18 chart │  │  train   │  │
-                    │   │  target  │  │endpoints │  │  tune    │  │
-                    │   └──────────┘  └──────────┘  └──────────┘  │
-                    │                                              │
-                    │   ┌──────────┐  ┌──────────────────────────┐ │
-                    │   │export.py │  │     helpers.py            │ │
-                    │   │ download │  │ state.py (session store)  │ │
-                    │   └──────────┘  └──────────────────────────┘ │
-                    │                                              │
-                    │   PyCaret ─── scikit-learn ─── XGBoost       │
-                    │   LightGBM ── CatBoost ── Optuna ── Plotly   │
-                    └─────────────────────────────────────────────┘
+```mermaid
+flowchart TD
+    subgraph Browser["Browser"]
+        UI["index.html + style.css + app.js"]
+    end
+
+    subgraph Server["FastAPI Server"]
+        direction TB
+        subgraph Routes["Route Modules"]
+            D["data.py\nUpload and Profiling"]
+            E["explore.py\n18 Chart Endpoints"]
+            B["build.py\nTrain, Compare, Tune"]
+            X["export.py\nDownload Artifacts"]
+        end
+        subgraph Core["Core"]
+            H["helpers.py"]
+            S["state.py"]
+        end
+    end
+
+    subgraph ML["ML Engine"]
+        PC["PyCaret 3.3"]
+        SK["scikit-learn"]
+        XG["XGBoost"]
+        LG["LightGBM"]
+        CB["CatBoost"]
+        OP["Optuna"]
+        PL["Plotly"]
+    end
+
+    UI -->|"fetch()"| Routes
+    Routes --> Core
+    B --> PC
+    PC --> SK & XG & LG & CB
+    B --> OP
+    E --> PL
+    B --> PL
+
+    style Browser fill:#1e1b4b,stroke:#6366f1,color:#e4e4e7
+    style Server fill:#0f0d1a,stroke:#4f46e5,color:#e4e4e7
+    style Routes fill:#1a1730,stroke:#818cf8,color:#c4b5fd
+    style Core fill:#1a1730,stroke:#818cf8,color:#c4b5fd
+    style ML fill:#0c0a14,stroke:#a78bfa,color:#e4e4e7
+    style UI fill:#2d2a5e,stroke:#818cf8,color:#fff
+    style D fill:#312e81,stroke:#6366f1,color:#e0e7ff
+    style E fill:#312e81,stroke:#6366f1,color:#e0e7ff
+    style B fill:#312e81,stroke:#6366f1,color:#e0e7ff
+    style X fill:#312e81,stroke:#6366f1,color:#e0e7ff
+    style H fill:#1e1b4b,stroke:#a78bfa,color:#c4b5fd
+    style S fill:#1e1b4b,stroke:#a78bfa,color:#c4b5fd
+    style PC fill:#312e81,stroke:#818cf8,color:#e0e7ff
+    style SK fill:#1e1b4b,stroke:#6366f1,color:#c4b5fd
+    style XG fill:#1e1b4b,stroke:#6366f1,color:#c4b5fd
+    style LG fill:#1e1b4b,stroke:#6366f1,color:#c4b5fd
+    style CB fill:#1e1b4b,stroke:#6366f1,color:#c4b5fd
+    style OP fill:#1e1b4b,stroke:#a78bfa,color:#c4b5fd
+    style PL fill:#1e1b4b,stroke:#a78bfa,color:#c4b5fd
 ```
 
 ### Tech Stack
